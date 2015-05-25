@@ -1,7 +1,7 @@
 objects=libpete.o libcache_test.o
 
 INC=../include
-LIB= ../lib -lUnitTest++ -lcache
+LIB= ../lib -lUnitTest++ -lcache -llist
 
 UT: $(objects)
 	g++ -o cache_ut  ${objects}  -L${LIB}
