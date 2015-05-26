@@ -1,4 +1,4 @@
-objects= main.o libpete.o libcache_test.o hash_ut.o
+objects= main.o libpete.o libcache_test.o hash_ut.o list_ut.o
 
 INC=../include
 LIB= ../lib -lUnitTest++ -lcache

@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "UnitTest++.h"
 #include "list.h"
 
