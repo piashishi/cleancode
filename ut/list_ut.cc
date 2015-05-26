@@ -1,10 +1,21 @@
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "UnitTest++.h"
 #include "list.h"
 
+static node_t gNode;
+
+static int traverse_node(node_t *node)
+{
+    printf("Expect node address: %X; Get node address: %X.\n", &gNode, node);
+    return !(&gNode == node);
+}
+
 TEST(list_ut)
 {
+    printf("begin to do unit test: list.h\n");
     node_t node_1;
     memset(&node_1, 0, sizeof(node_t));
 
@@ -42,5 +53,19 @@ TEST(list_ut)
 
     list_clear(&list, NULL);
     CHECK_EQUAL(0, list_size(&list));
+    CHECK_EQUAL(1, NULL == list_front(&list));
+    CHECK_EQUAL(1, NULL == list_back(&list));
     CHECK_EQUAL(1, NULL == list_foreach(&list, NULL));
+
+    list_push_back(&list, &node_1);
+    list_push_back(&list, &node_2);
+    list_push_back(&list, &node_3);
+    list_push_back(&list, &gNode);
+    CHECK_EQUAL(1, &node_1 == list_front(&list));
+    CHECK_EQUAL(1, &gNode == list_back(&list));
+    CHECK_EQUAL(1, &gNode == list_foreach(&list, traverse_node));
+
+    CHECK_EQUAL(1, NULL == list_front(NULL));
+    CHECK_EQUAL(1, NULL == list_back(NULL));
+    CHECK_EQUAL(1, NULL == list_foreach(NULL, NULL));
 }
