@@ -5,7 +5,7 @@
  *      Author: liyozhao
  */
 
-#include "liblist.h"
+#include "list.h"
 
 #ifndef NULL
 #ifdef __cplusplus

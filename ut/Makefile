@@ -1,13 +1,13 @@
-objects=libpete.o libcache_test.o
+objects= main.o libpete.o libcache_test.o hash_ut.o
 
 INC=../include
-LIB= ../lib -lUnitTest++ -lcache -llist
+LIB= ../lib -lUnitTest++ -lcache
 
 UT: $(objects)
-	g++ -o cache_ut  ${objects}  -L${LIB}
+	g++ -g -o cache_ut  ${objects}  -L${LIB}
 
 $(objects): %.o: %.cc
-	g++ -c $<  -o $@  -I${INC}
+	g++ -g -c $<  -o $@  -I${INC}
 	 
 clean:
 	rm cache_ut *.o

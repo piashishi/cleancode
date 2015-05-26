@@ -1,15 +1,10 @@
 INC=../include
-SRC=libcache.c liblist.c
+SRC=libcache.c list.c hash.c
 
 libcache: libcache.o
-	ar rcs libcache.a libcache.o
+	ar rcs libcache.a *.o
 	@mv libcache.a ../lib
-	ar rcs liblist.a liblist.o
-	@mv liblist.a ../lib
-	
 libcache.o: 
-	gcc -c ${SRC} -I${INC}
-	
+	 gcc -c ${SRC} -I${INC}
 clean:
 	rm libcache.a *.o
-	rm liblist.a *.o
