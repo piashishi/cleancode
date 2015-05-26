@@ -6,7 +6,7 @@
  */
 
 #include "libpete.h"
-
+ 
 int64_t  timeval_subtract(struct timeval* result, struct timeval* x, struct timeval* y)
 {
         if(x->tv_sec>y->tv_sec)
