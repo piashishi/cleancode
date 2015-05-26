@@ -1,5 +1,5 @@
 INC=../include
-SRC=libcache.c list.c hash.c
+SRC=libcache.c pool.c list.c hash.c
 
 libcache: libcache.o
 	ar rcs libcache.a *.o
