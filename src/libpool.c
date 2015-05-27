@@ -28,8 +28,8 @@ int pool_init(int size)
 
 static int get_index(void *element_addr)
 {
-    if ((((char*)element_addr - (char*)pool.start_memory) < 0)
-            || ((char*)element_addr - (char*)pool.start_memory) > pool.memory_size) {
+    if ((((char*) element_addr - (char*) pool.start_memory) < 0)
+            || ((char*) element_addr - (char*) pool.start_memory) > pool.memory_size) {
         return INVALID_INDEX;
     }
 
@@ -66,7 +66,7 @@ int pool_init_element_pool(int entry_size, int entry_count)
         list_push_back(&pool.free_list, node);
 
         int index = get_index(addr);
-        pool.element_link[index] = node;// TODO: problem !!!
+        pool.element_link[index] = node; // TODO: problem !!!
 
         addr = (void*) ((char*) addr + entry_size);
     }
@@ -89,6 +89,9 @@ node_t* get_real_node_addr(void* element)
 {
 
     int index = get_index(element);
+    if (index == INVALID_INDEX) {
+        return NULL;
+    }
     node_t *node = pool.element_link[index];
     return node;
 }

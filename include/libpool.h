@@ -17,8 +17,7 @@ typedef struct element_pool_t {
 element_pool_t pool;
 
 typedef enum return_t {
-    OK,
-    ERR
+    OK, ERR
 } return_t;
 
 /**
