@@ -1,9 +1,10 @@
-UT_objects= main.o libpete.o libcache_test.o hash_ut.o list_ut.o
-SRC_obj = list.o hash.o libcache.o
+UT_objects= main.o libpete.o libpool_ut.o libcache_test.o hash_ut.o list_ut.o
+SRC_obj = list.o hash.o libcache.o libpool.o
 
 SRC = ../src/list.c \
 	  ../src/hash.c \
-	  ../src/libcache.c
+	  ../src/libcache.c \
+	  ../src/libpool.c
 
 INC=../include
 LIB= ../lib -lUnitTest++  -lgcov

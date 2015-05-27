@@ -1,15 +1,18 @@
 #include "stdlib.h"
 #include "string.h"
 #include "list.h"
-#include "pool.h"
-
-element_pool_t pool;
+#include "libpool.h"
 
 int pool_init(int size)
 {
+
     memset(&pool, '\0', sizeof(pool));
-    list_init(pool.free_list);
-    list_init(pool.busy_list);
+    list_init(&pool.free_list);
+    list_init(&pool.busy_list);
+
+    while (size % 4 != 0) {
+        size++;
+    }
 
     pool.start_memory = (void*) malloc(size);
     if (pool.start_memory == NULL) {
@@ -37,7 +40,7 @@ int pool_init_element_pool(int entry_size, int entry_count)
         return ERR;
     }
 
-    pool.element_link = (node_t*) malloc(sizeof(node_t*) * entry_count);
+    pool.element_link = (node_t**) malloc(sizeof(node_t**) * entry_count);
     memset(pool.element_link, '\0', sizeof(node_t*) * entry_count);
 
     pool.element_size = entry_size;
@@ -53,11 +56,10 @@ int pool_init_element_pool(int entry_size, int entry_count)
         node->key = NULL;
         node->entry = addr;
 
-        list_push_back(pool.free_list, node);
+        list_push_back(&pool.free_list, node);
 
         int index = get_index(addr);
-        node_t *link_node = pool.element_link + index;
-        link_node = node;
+        pool.element_link[index] = node;// TODO: problem !!!
 
         addr = (void*) ((char*) addr + entry_size);
     }
@@ -67,24 +69,32 @@ int pool_init_element_pool(int entry_size, int entry_count)
 
 void* pool_get_element()
 {
-    node_t *node = list_pop_back(pool.free_list);
+    node_t *node = list_pop_back(&pool.free_list);
     if (node == NULL) {
-        list_push_back(pool.busy_list, node);
+        return NULL;
+    } else {
+        list_push_back(&pool.busy_list, node);
+        return node->entry;
     }
+}
 
+node_t* get_real_node_addr(void* element)
+{
+
+    int index = get_index(element);
+    node_t *node = pool.element_link[index];
     return node;
 }
 
 int pool_free_element(void* element)
 {
-    int index = get_index(element);
-    node_t *node = pool.element_link + index;
+    node_t *node = get_real_node_addr(element);
     if (node == NULL) {
         return ERR;
     }
 
-    list_remove(pool.busy_list, node);
-    list_push_back(pool.free_list, node);
+    list_remove(&pool.busy_list, node);
+    list_push_back(&pool.free_list, node);
 
     return OK;
 }

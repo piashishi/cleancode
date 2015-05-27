@@ -1,15 +1,20 @@
-#ifndef POOL_H_
-#define POOL_H_
+#ifndef LIBPOOL_H_
+#define LIBPOOL_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct element_pool_t {
-    list_t* busy_list;
-    list_t* free_list;
+    list_t busy_list;
+    list_t free_list;
     void* start_memory;
     int memory_size;
     int element_size;
-    node_t* element_link;
+    node_t** element_link;
 } element_pool_t;
 
+element_pool_t pool;
 
 typedef enum return_t {
     OK,
@@ -43,6 +48,7 @@ int pool_init_element_pool(int entry_size, int entry_count);
  */
 void* pool_get_element();
 
+node_t* get_real_node_addr(void* element); // TODO
 /**
  * @fn pool_free_element
  *
@@ -52,4 +58,7 @@ void* pool_get_element();
  */
 int pool_free_element(void* element);
 
-#endif /* POOL_H_ */
+#ifdef __cplusplus
+}
+#endif
+#endif /* LIBPOOL_H_ */
