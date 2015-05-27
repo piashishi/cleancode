@@ -21,4 +21,4 @@ $(UT_objects): %.o: %.cc
 	g++ -g -c $<  -o $@  -I${INC} -fprofile-arcs -ftest-coverage
 
 clean:
-	rm cache_ut
+	rm -f cache_ut

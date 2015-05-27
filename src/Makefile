@@ -7,4 +7,4 @@ libcache: libcache.o
 libcache.o: 
 	 gcc -c ${SRC} -I${INC}
 clean:
-	rm libcache.a *.o
+	rm -f libcache.a *.o
