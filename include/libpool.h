@@ -14,8 +14,6 @@ typedef struct element_pool_t {
     node_t** element_link;
 } element_pool_t;
 
-element_pool_t pool;
-
 typedef enum return_t {
     OK, ERR
 } return_t;
@@ -47,7 +45,6 @@ int pool_init_element_pool(int entry_size, int entry_count);
  */
 void* pool_get_element();
 
-node_t* get_real_node_addr(void* element); // TODO
 /**
  * @fn pool_free_element
  *

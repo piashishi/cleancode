@@ -6,8 +6,6 @@
 #include "list.h"
 #include "libpool.h"
 
-extern element_pool_t pool;
-
 TEST(libpool_ut_init)
 {
     int mem_size = 100;

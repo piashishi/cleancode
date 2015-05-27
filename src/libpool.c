@@ -5,6 +5,8 @@
 
 #define INVALID_INDEX (-1)
 
+element_pool_t pool;
+
 int pool_init(int size)
 {
 
@@ -85,25 +87,18 @@ void* pool_get_element()
     }
 }
 
-node_t* get_real_node_addr(void* element)
-{
-
-    int index = get_index(element);
-    if (index == INVALID_INDEX) {
-        return NULL;
-    }
-    node_t *node = pool.element_link[index];
-    return node;
-}
-
 int pool_free_element(void* element)
 {
-    node_t *node = get_real_node_addr(element);
+    int index = get_index(element);
+    if (index == INVALID_INDEX) {
+        return ERR;
+    }
+
+    node_t *node = pool.element_link[index];
     if (node == NULL) {
         return ERR;
     }
 
-    int index = get_index(element);
     pool.element_link[index] = NULL;
 
     list_remove(&pool.busy_list, node);
