@@ -3,6 +3,8 @@
 #include "list.h"
 #include "libpool.h"
 
+#define INVALID_INDEX (-1)
+
 int pool_init(int size)
 {
 
@@ -26,6 +28,11 @@ int pool_init(int size)
 
 static int get_index(void *element_addr)
 {
+    if ((((char*)element_addr - (char*)pool.start_memory) < 0)
+            || ((char*)element_addr - (char*)pool.start_memory) > pool.memory_size) {
+        return INVALID_INDEX;
+    }
+
     int index = ((char*) element_addr - (char*) pool.start_memory) / pool.element_size;
     return index;
 }
@@ -92,6 +99,9 @@ int pool_free_element(void* element)
     if (node == NULL) {
         return ERR;
     }
+
+    int index = get_index(element);
+    pool.element_link[index] = NULL;
 
     list_remove(&pool.busy_list, node);
     list_push_back(&pool.free_list, node);
