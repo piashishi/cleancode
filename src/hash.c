@@ -16,6 +16,8 @@
 #define GOLDEN_RATIO_PRIME_32 0x9e370001UL
 
 static void* g_key = NULL;
+key_compare g_kcmp = NULL;
+
 
 static inline u32 hash_32(u32 val, u32 bits)
 {
@@ -30,41 +32,40 @@ static u32 key_to_hash(hash_t* hash, void* key)
     return hash_32(value, HASH_BIT);
 }
 
-int find_node(node_t* node)
+static int find_node(node_t* node)
 {
     if (node == NULL) {
         printf("fatal error, invalid parameter");
         return -1;
     }
-    hash_data_t* hd = (hash_data_t*) node->usr_data;
-    return compare_cb(g_key, hd->key);
+    hash_data_t* hd = (hash_data_t*)node->usr_data;
+    return g_kcmp(g_key, hd->key);
 }
 
-static int free_node(node_t* node)
+static void free_node(node_t* node)
 {
     if (node == NULL) {
-        printf("fatal error, invalid parameter");
-        return -1;
+        return ;
     }
     hash_data_t* hd = (hash_data_t*) node->usr_data;
     if(hd != NULL)
     {
         if(hd->key != NULL)
         {
-            free(hd_key);
+            free(hd->key);
         }
         free(hd);
     }
     free(node);
-    return 1;
+    return ;
 }
 
-int hash_init(int key_size, key_compare key_cmp, key_to_number key_to_num)
+void* hash_init(int key_size, key_compare key_cmp, key_to_number key_to_num)
 {
     hash_t* hash = (hash_t*) malloc(sizeof(hash_t));
     if (hash == NULL) {
         printf("hash init failed: ouf of memory!");
-        return -1;
+        return NULL;
     }
 
     hash->entry_count = 0;
@@ -78,16 +79,16 @@ int hash_init(int key_size, key_compare key_cmp, key_to_number key_to_num)
         hash->bucket_list[i].list = NULL;
         i++;
     }
-    return 0;
+    return hash;
 }
 
 void* hash_add(void* hash_table, void* key, void* cache_node)
 {
-    if (hash == NULL || key == NULL) {
+    if (hash_table == NULL || key == NULL) {
         printf("invalid parameter\n");
         return NULL;
     }
-    hash_t hash = (hash_t*) hash_table;
+    hash_t* hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code > MAX_BUCKETS) {
         printf("hash key is invalid:%d\n", hash_code);
@@ -99,13 +100,13 @@ void* hash_add(void* hash_table, void* key, void* cache_node)
         printf("get memory failed, out of memory!");
         return NULL;
     }
-
     node->usr_data = (hash_data_t*) malloc(sizeof(hash_data_t));
-    node->usr_data->key = malloc(sizeof(hash->key_size) + 1);
-    memset(node->usr_data->key, 0, hash->key_size + 1);
-    memcpy(node->usr_data->key, key, hash->key_size);
+    hash_data_t* hd =(hash_data_t*)node->usr_data;
+    hd->key = malloc(sizeof(hash->key_size) + 1);
+    memset(hd->key, 0, hash->key_size + 1);
+    memcpy(hd->key, key, hash->key_size);
 
-    node->usr_data->cache_node_ptr = cache_node;
+    hd->cache_node_ptr = cache_node;
     node->next_node = NULL;
     node->previous_node = NULL;
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
@@ -123,7 +124,7 @@ void* hash_add(void* hash_table, void* key, void* cache_node)
 
 int hash_del(void* hash_table, void* key, void* hash_node)
 {
-    if (hash == NULL || entry == NULL || key == NULL) {
+    if (hash_table == NULL || hash_node == NULL || key == NULL) {
         printf("invalid parameter");
         return -1;
     }
@@ -149,7 +150,7 @@ int hash_del(void* hash_table, void* key, void* hash_node)
     return 0;
 }
 
-void* hash_find(hash_t* hash_table, void* key)
+void* hash_find(void* hash_table, void* key)
 {
     if (hash_table == NULL || key == NULL) {
         return NULL;
@@ -167,6 +168,7 @@ void* hash_find(hash_t* hash_table, void* key)
         return NULL;
     } else {
         g_key = key;
+        g_kcmp = hash->kcmp;
         node_t* node = list_foreach(bucket->list, find_node);
         if (node == NULL) {
             printf("Can't find the key\n");
@@ -200,7 +202,7 @@ void hash_free(void* hash_table)
         if(bucket->list != NULL)
         {
             list_clear(bucket->list, free_node);
-            free(list);
+            free(bucket->list);
         }
     }
     free(hash);
