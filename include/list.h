@@ -17,8 +17,7 @@ extern "C" {
 
 typedef struct node_t
 {
-    void *key; /* key pointer */
-    void *entry; /* entry pointer */
+    void *usr_data;
     struct node_t *previous_node; /* pointer to previous child */
     struct node_t *next_node; /* pointer to next child */
 }node_t;
