@@ -36,10 +36,10 @@ int test_key_com(const void* key1, const void* key2)
 }
 
 struct HashFixture {
-    hash_t* g_hash;
+    hash_t* g_hash = NULL;
     HashFixture()
     {
-        g_hash = hash_init(sizeof(int), test_key_com, test_key_to_int);
+        g_hash = (hash_t*)hash_init(sizeof(int), test_key_com, test_key_to_int);
     }
     ~HashFixture()
     {
@@ -58,15 +58,16 @@ struct HashFixture {
         for (i = 0; i < 655350; i++) {
             list_entry = (node_t*) malloc(sizeof(node_t));
             list_entry->usr_data = (test_data_t*)malloc(sizeof(test_data_t));
-            list_entry->usr_data->key = (int*) malloc(sizeof(int));
-            memcpy(list_entry->usr_data->key, &i, sizeof(int));
+            test_data_t* td = (test_data_t*)list_entry->usr_data;
+            td->key = (int*) malloc(sizeof(int));
+            memcpy(td->key, &i, sizeof(int));
 
             hash_entry = (node_t*) hash_add(g_hash, &i, list_entry);
             if (hash_entry == NULL) {
                 printf("insert to hash failed!\n");
                 return -1;
             }
-            list_entry->usr_data->entry = hash_entry;
+            td->entry = hash_entry;
             list_push_front(list, list_entry);
         }
         return 0;
@@ -102,8 +103,9 @@ TEST_FIXTURE(HashFixture, TestFindHash)
     node_t* node = (node_t*) hash_find(g_hash, &value);
     CHECK(node != NULL);
     int* p1 = (int*) (((test_data_t*)node->usr_data)->key);
-    node_t* pp = (node_t*) ((test_data_t*)node->usr_data)->entry);
-    int* p2 = (int*) pp->key;
+    node_t* pp = (node_t*)(((test_data_t*)node->usr_data)->entry);
+    hash_data_t* hd = (hash_data_t*)pp->usr_data;
+    int* p2 = (int*) hd->key;
     CHECK(*p1 == 2000);
     CHECK(*p2 == 2000);
 
@@ -119,17 +121,18 @@ TEST_FIXTURE(HashFixture, TestDelHash)
 
     int value = 655349;
     node_t* node = (node_t*) hash_find(g_hash, &value);
-    hash_data_t* hd = node->usr_data;
+    hash_data_t* hd2 = (hash_data_t*)node->usr_data;
     CHECK(node != NULL);
 
+
     node = list_pop_front(list);
-    ret = hash_del(g_hash, hd->key, hd->cache_node_ptr);
+    ret = hash_del(g_hash, hd2->key, node);
     CHECK(ret == 0);
 
     node = (node_t*) hash_find(g_hash, &value);
     CHECK(node == NULL);
 
-    int count = hash_get_count();
+    int count = hash_get_count(g_hash);
     CHECK(count == 655349);
 }
 
