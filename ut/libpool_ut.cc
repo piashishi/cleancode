@@ -12,19 +12,19 @@ TEST(libpool_ut_init)
     int element_size = 4;
     const int entry_count = 25;
 
-    int ret = pool_init(mem_size);
-    CHECK_EQUAL(ret, OK);
+    element_pool_t *pool = pool_init(mem_size);
+    CHECK_EQUAL(!pool, 0);
 
-    ret = pool_init_element_pool(element_size, entry_count);
+    int ret = pool_init_element_pool(pool, element_size, entry_count);
     CHECK_EQUAL(ret, OK);
 
     mem_size = 125;
     element_size = 5;
 
-    ret = pool_init(mem_size);
-    CHECK_EQUAL(ret, OK);
+    pool = pool_init(mem_size);
+    CHECK_EQUAL(!pool, 0);
 
-    ret = pool_init_element_pool(element_size, entry_count);
+    ret = pool_init_element_pool(pool, element_size, entry_count);
     CHECK_EQUAL(ret, ERR);
 }
 
@@ -34,10 +34,10 @@ TEST(libpool_ut_get_element)
     int element_size = 4;
     const int entry_count = 25;
 
-    int ret = pool_init(mem_size);
-    CHECK_EQUAL(ret, OK);
+    element_pool_t *pool = pool_init(mem_size);
+    CHECK_EQUAL(!pool, 0);
 
-    ret = pool_init_element_pool(element_size, entry_count);
+    int ret = pool_init_element_pool(pool, element_size, entry_count);
     CHECK_EQUAL(ret, OK);
 
     void * entry_stack[entry_count];
@@ -45,20 +45,20 @@ TEST(libpool_ut_get_element)
     int i;
     void *entry;
     for (i = 0; i < entry_count; i++) {
-        entry = pool_get_element();
+        entry = pool_get_element(pool);
         CHECK_EQUAL(entry != (void* )NULL, TRUE);
         entry_stack[i] = entry;
     }
 
-    entry = pool_get_element();
+    entry = pool_get_element(pool);
     CHECK_EQUAL(entry == (void* )NULL, TRUE);
 
     for (i = 0; i < entry_count; i++) {
-        ret = pool_free_element(entry_stack[i]);
+        ret = pool_free_element(pool, entry_stack[i]);
         CHECK_EQUAL(ret, OK);
     }
 
-    ret = pool_free_element(entry_stack[i]);
+    ret = pool_free_element(pool, entry_stack[i]);
     CHECK_EQUAL(ret, ERR);
 
 }
