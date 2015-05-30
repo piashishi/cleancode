@@ -31,6 +31,8 @@ typedef enum return_t {
  *
  * @brief Init memory to pool..
  * @param [in] size - pool size
+ * @param allocate_memory       function to allocate memory for this cache object, e.g. malloc().
+ * @param free_memory           function to free whole cache object, e.g. free().
  * @return -  pool pointer, return NULL when failed
  */
 element_pool_t* pool_init(size_t size,
