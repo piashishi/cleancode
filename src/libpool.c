@@ -1,14 +1,39 @@
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "list.h"
 #include "libpool.h"
 
 #define INVALID_INDEX (-1)
 
-
-element_pool_t* pool_init(int size)
+static void pool_cb_register(element_pool_t* pool,
+                      LIBCACHE_ALLOCATE_MEMORY* allocate_memory,
+                      LIBCACHE_FREE_MEMORY* free_memory)
 {
-    element_pool_t *pool = (element_pool_t*) malloc(sizeof (element_pool_t));
+    if (allocate_memory == NULL) {
+        pool->cb.allocate_memory = malloc;
+    } else {
+        pool->cb.allocate_memory = allocate_memory;
+    }
+
+    if (free_memory == NULL) {
+        pool->cb.free_memory = free;
+    } else {
+        pool->cb.free_memory = free_memory;
+    }
+}
+
+element_pool_t* pool_init(size_t size,
+                          LIBCACHE_ALLOCATE_MEMORY* allocate_memory,
+                          LIBCACHE_FREE_MEMORY* free_memory)
+{
+    LIBCACHE_ALLOCATE_MEMORY* allocate_func;
+    element_pool_t *pool;
+    if (allocate_memory == NULL) {
+        pool = (element_pool_t*) malloc(sizeof (element_pool_t));
+    } else {
+        pool = (element_pool_t*) allocate_memory(sizeof (element_pool_t));
+    }
+
     if (pool == NULL) {
         return NULL;
     }
@@ -16,14 +41,15 @@ element_pool_t* pool_init(int size)
     memset(pool, '\0', sizeof(pool));
     list_init(&pool->free_list);
     list_init(&pool->busy_list);
+    pool_cb_register(pool, allocate_memory, free_memory);
 
     while (size % 4 != 0) {
         size++;
     }
 
-    pool->start_memory = (void*) malloc(size);
+    pool->start_memory = (void*) pool->cb.allocate_memory(size);
     if (pool->start_memory == NULL) {
-        free(pool);
+        pool->cb.free_memory(pool);
         return NULL;
     }
 
@@ -43,7 +69,7 @@ static int get_index(element_pool_t *pool, void *element_addr)
     return index;
 }
 
-int pool_init_element_pool(element_pool_t *pool, int entry_size, int entry_count)
+int pool_init_element_pool(element_pool_t *pool, size_t entry_size, int entry_count)
 {
     while (entry_size % 4 != 0) {
         entry_size++;
@@ -53,7 +79,7 @@ int pool_init_element_pool(element_pool_t *pool, int entry_size, int entry_count
         return ERR;
     }
 
-    pool->element_link = (node_t**) malloc(sizeof(node_t**) * entry_count);
+    pool->element_link = (node_t**) pool->cb.allocate_memory(sizeof(node_t**) * entry_count);
     if (pool->element_link == NULL) {
         return ERR;
     }
@@ -64,7 +90,7 @@ int pool_init_element_pool(element_pool_t *pool, int entry_size, int entry_count
     void* addr = pool->start_memory;
     int i;
     for (i = 0; i < entry_count; i++) {
-        node_t* node = (node_t*) malloc(sizeof(node_t));
+        node_t* node = (node_t*) pool->cb.allocate_memory(sizeof(node_t));
         if (node == NULL) {
             return ERR;
         }

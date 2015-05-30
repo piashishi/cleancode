@@ -8,11 +8,11 @@
 
 TEST(libpool_ut_init)
 {
-    int mem_size = 100;
-    int element_size = 4;
+    size_t mem_size = 100;
+    size_t element_size = 4;
     const int entry_count = 25;
 
-    element_pool_t *pool = pool_init(mem_size);
+    element_pool_t *pool = pool_init(mem_size, NULL, NULL);
     CHECK_EQUAL(!pool, 0);
 
     int ret = pool_init_element_pool(pool, element_size, entry_count);
@@ -21,7 +21,7 @@ TEST(libpool_ut_init)
     mem_size = 125;
     element_size = 5;
 
-    pool = pool_init(mem_size);
+    pool = pool_init(mem_size, NULL, NULL);
     CHECK_EQUAL(!pool, 0);
 
     ret = pool_init_element_pool(pool, element_size, entry_count);
@@ -30,11 +30,11 @@ TEST(libpool_ut_init)
 
 TEST(libpool_ut_get_element)
 {
-    int mem_size = 100;
-    int element_size = 4;
+    size_t mem_size = 100;
+    size_t element_size = 4;
     const int entry_count = 25;
 
-    element_pool_t *pool = pool_init(mem_size);
+    element_pool_t *pool = pool_init(mem_size, NULL, NULL);
     CHECK_EQUAL(!pool, 0);
 
     int ret = pool_init_element_pool(pool, element_size, entry_count);

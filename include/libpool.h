@@ -1,17 +1,25 @@
 #ifndef LIBPOOL_H_
 #define LIBPOOL_H_
+#include <stddef.h>
+#include "libcache_def.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+typedef struct pool_cb_t {
+    LIBCACHE_ALLOCATE_MEMORY* allocate_memory;
+    LIBCACHE_FREE_MEMORY* free_memory;
+} pool_cb_t;
+
 typedef struct element_pool_t {
     list_t busy_list;
     list_t free_list;
     void* start_memory;
-    int memory_size;
-    int element_size;
+    size_t memory_size;
+    size_t element_size;
     node_t** element_link;
+    pool_cb_t cb;
 } element_pool_t;
 
 typedef enum return_t {
@@ -25,7 +33,9 @@ typedef enum return_t {
  * @param [in] size - pool size
  * @return -  pool pointer, return NULL when failed
  */
-element_pool_t* pool_init(int size);
+element_pool_t* pool_init(size_t size,
+                          LIBCACHE_ALLOCATE_MEMORY* allocate_memory,
+                          LIBCACHE_FREE_MEMORY* free_memory);
 
 /**
  * @fn pool_init_element_pool
@@ -36,7 +46,7 @@ element_pool_t* pool_init(int size);
  * @param [in] entry_count - entry count
  * @return -  OK / ERR
  */
-int pool_init_element_pool(element_pool_t *pool, int entry_size, int entry_count);
+int pool_init_element_pool(element_pool_t *pool, size_t entry_size, int entry_count);
 
 /**
  * @fn pool_get_element
