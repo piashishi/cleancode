@@ -62,8 +62,7 @@ int pool_init_element_pool(int entry_size, int entry_count)
             return ERR;
         }
 
-        node->key = NULL;
-        node->entry = addr;
+        node->usr_data = addr;
 
         list_push_back(&pool.free_list, node);
 
@@ -83,7 +82,7 @@ void* pool_get_element()
         return NULL;
     } else {
         list_push_back(&pool.busy_list, node);
-        return node->entry;
+        return node->usr_data;
     }
 }
 
