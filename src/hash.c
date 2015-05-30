@@ -1,7 +1,7 @@
 /*
  * hash.c
  *
- *  Created on: 2015Äê5ÔÂ24ÈÕ
+ *  Created on: 2015ï¿½ï¿½5ï¿½ï¿½24ï¿½ï¿½
  *      Author: goyuan
  */
 
@@ -15,8 +15,11 @@
 
 #define GOLDEN_RATIO_PRIME_32 0x9e370001UL
 
-static void* g_key = NULL;
-key_compare g_kcmp = NULL;
+typedef struct to_find_node_t
+{
+	void* g_key;
+	LIBCACHE_CMP_KEY* g_kcmp;
+}to_find_node_t;
 
 
 static inline u32 hash_32(u32 val, u32 bits)
@@ -32,14 +35,15 @@ static u32 key_to_hash(hash_t* hash, void* key)
     return hash_32(value, HASH_BIT);
 }
 
-static int find_node(node_t* node)
+static int find_node(node_t* node, void* usr_data)
 {
+	to_find_node_t* to_find_node = (to_find_node_t*)usr_data;
     if (node == NULL) {
         printf("fatal error, invalid parameter");
         return -1;
     }
     hash_data_t* hd = (hash_data_t*)node->usr_data;
-    return g_kcmp(g_key, hd->key);
+    return to_find_node->g_kcmp(to_find_node->g_key, hd->key);
 }
 
 static void free_node(node_t* node)
@@ -60,7 +64,7 @@ static void free_node(node_t* node)
     return ;
 }
 
-void* hash_init(int key_size, key_compare key_cmp, key_to_number key_to_num)
+void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num)
 {
     hash_t* hash = (hash_t*) malloc(sizeof(hash_t));
     if (hash == NULL) {
@@ -167,9 +171,10 @@ void* hash_find(void* hash_table, void* key)
         printf("Fatal error, hash_list is NULL");
         return NULL;
     } else {
-        g_key = key;
-        g_kcmp = hash->kcmp;
-        node_t* node = list_foreach(bucket->list, find_node);
+    	to_find_node_t to_find_node;
+    	to_find_node.g_key = key;
+    	to_find_node.g_kcmp = hash->kcmp;
+        node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*)&to_find_node);
         if (node == NULL) {
             printf("Can't find the key\n");
             return NULL;

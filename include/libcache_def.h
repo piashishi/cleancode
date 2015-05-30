@@ -10,9 +10,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "hash.h"
-#include "list.h"
-
 
 /* It could be uint16_t or uint8_t to achieve
  * a smaller space usage when very few entries
@@ -37,13 +34,6 @@ typedef enum
     LIBCACHE_FULL,
     LIBCACHE_FAILURE,
 } libcache_ret_t;
-
-typedef struct libcache_t
-{
-    libcache_scale_t entry_counter;
-    list_t* cache_list;
-    hash_t* cache_hash;
-}libcache_t;
 
 typedef libcache_cmp_ret_t LIBCACHE_CMP_KEY(const void *key1, const void *key2);
 typedef void* LIBCACHE_ALLOCATE_MEMORY(size_t size);

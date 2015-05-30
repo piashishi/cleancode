@@ -1,7 +1,7 @@
 /*
  * hash.h
  *
- *  Created on: 2015Äê5ÔÂ24ÈÕ
+ *  Created on: 2015ï¿½ï¿½5ï¿½ï¿½24ï¿½ï¿½
  *      Author: goyuan
  */
 
@@ -9,12 +9,11 @@
 #define HASH_H_
 
 #include "list.h"
+#include "libcache_def.h"
+
 #define MAX_BUCKETS 65535
 
 #define u32  unsigned int
-
-typedef int (*key_compare)(const void* src_key, const void* dst_key);
-typedef u32 (*key_to_number)(const void* key);
 
 typedef struct hash_data_t {
     void* key;
@@ -30,8 +29,8 @@ typedef struct hash_t {
     int entry_count;
     bucket_t bucket_list[MAX_BUCKETS];
     int key_size;
-    key_compare kcmp;
-    key_to_number k2num;
+    LIBCACHE_CMP_KEY* kcmp;
+    LIBCACHE_KEY_TO_NUMBER* k2num;
 } hash_t;
 
 /**
@@ -44,7 +43,7 @@ typedef struct hash_t {
  * @return NULL  - when out of memory.
  * @return pointer to hash table
  */
-void* hash_init(int key_size, key_compare key_cmp, key_to_number key_to_num);
+void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num);
 
 /**
  * @fn hash_add
