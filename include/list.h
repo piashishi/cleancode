@@ -136,6 +136,17 @@ node_t * list_pop_back(list_t *list);
 node_t * list_foreach(list_t *list, int (*traverse_node_cb)(node_t *node));
 
 /**
+ * @fn list_foreach_with_usr_data
+ *
+ * @brief traverse node in list
+ * @param [in] list - list pointer
+ * @param [in] int (*traverse_node_cb)(node_t *node) - call back function to handle traversed node in list;
+ *             return  - 0: traversing over; 1: continue traversing
+ * @return  node_t * - the node to be found
+ */
+node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t *node, void* usr_data), void* usr_data);
+
+/**
  * @fn list_clear
  *
  * @brief Removes all elements from the list container.
