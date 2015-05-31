@@ -75,6 +75,14 @@ void* pool_get_element(element_pool_t *pool);
  */
 int pool_free_element(element_pool_t *pool, void* element);
 
+/**
+ * @fn pool_get_key_by_element_address
+ *
+ * @brief get key by element memory.
+ * @param [in] pool - pool pointer, should initiated by pool_init first.
+ * @param [in] element  - element address
+ * @return - a point to element memory(NULL: not found or parameter error)
+ */
 void* pool_get_key_by_element_address(element_pool_t *pool, void* element);
 
 #ifdef __cplusplus
