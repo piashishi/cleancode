@@ -1,7 +1,7 @@
 /*
  * hash.c
  *
- *  Created on: 2015��5��24��
+ *  Created on: May 24, 2015
  *      Author: goyuan
  */
 
@@ -28,7 +28,7 @@ static inline u32 hash_32(u32 val, u32 bits)
     return hash >> (32 - bits);
 }
 
-static u32 key_to_hash(hash_t* hash, void* key)
+static u32 key_to_hash(hash_t* hash, const void* key)
 {
 
     u32 value = hash->k2num(key);
@@ -86,7 +86,7 @@ void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER*
     return hash;
 }
 
-void* hash_add(void* hash_table, void* key, void* cache_node)
+void* hash_add(void* hash_table, const void* key, void* cache_node)
 {
     if (hash_table == NULL || key == NULL) {
         printf("invalid parameter\n");
@@ -126,7 +126,7 @@ void* hash_add(void* hash_table, void* key, void* cache_node)
     return node;
 }
 
-int hash_del(void* hash_table, void* key, void* hash_node)
+int hash_del(void* hash_table, const void* key, void* hash_node)
 {
     if (hash_table == NULL || hash_node == NULL || key == NULL) {
         printf("invalid parameter");
@@ -154,7 +154,7 @@ int hash_del(void* hash_table, void* key, void* hash_node)
     return 0;
 }
 
-void* hash_find(void* hash_table, void* key)
+void* hash_find(void* hash_table, const void* key)
 {
     if (hash_table == NULL || key == NULL) {
         return NULL;

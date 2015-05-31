@@ -95,7 +95,9 @@ int pool_init_element_pool(element_pool_t *pool, size_t entry_size, int entry_co
             return ERR;
         }
 
-        node->usr_data = addr;
+        node->usr_data = (void*)malloc(sizeof(element_usr_data_t));
+        ((element_usr_data_t*)node->usr_data)->key = NULL;
+        ((element_usr_data_t*)node->usr_data)->usr_data = addr;
 
         list_push_back(&pool->free_list, node);
 
@@ -133,9 +135,24 @@ int pool_free_element(element_pool_t *pool, void* element)
 
     pool->element_link[index] = NULL;
 
+    free(((element_usr_data_t*)node->usr_data)->key);
+    ((element_usr_data_t*)node->usr_data)->key = NULL;
     list_remove(&pool->busy_list, node);
     list_push_back(&pool->free_list, node);
 
     return OK;
 }
 
+void* pool_get_key_by_element_address(element_pool_t *pool, void* element)
+{
+    int index = get_index(pool, element);
+    if (INVALID_INDEX == index) {
+        return 0;
+    }
+
+    node_t *node = pool->element_link[index];
+    if (NULL == node) {
+        return 0;
+    }
+    return ((element_usr_data_t*)node->usr_data)->key;
+}

@@ -2,6 +2,7 @@
 #define LIBPOOL_H_
 #include <stddef.h>
 #include "libcache_def.h"
+#include "list.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +26,11 @@ typedef struct element_pool_t {
 typedef enum return_t {
     OK, ERR
 } return_t;
+
+typedef struct element_usr_data_t{
+    void* usr_data;
+    void* key;
+}element_usr_data_t;
 
 /**
  * @fn pool_init
@@ -68,6 +74,8 @@ void* pool_get_element(element_pool_t *pool);
  * @return -  OK / ERR
  */
 int pool_free_element(element_pool_t *pool, void* element);
+
+void* pool_get_key_by_element_address(element_pool_t *pool, void* element);
 
 #ifdef __cplusplus
 }

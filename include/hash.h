@@ -1,7 +1,7 @@
 /*
  * hash.h
  *
- *  Created on: 2015��5��24��
+ *  Created on: May 24, 2015
  *      Author: goyuan
  */
 
@@ -18,6 +18,7 @@
 typedef struct hash_data_t {
     void* key;
     char* cache_node_ptr;
+    uint32_t used_counter;
 } hash_data_t;
 
 typedef struct bucket_t {
@@ -55,7 +56,7 @@ void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER*
  * @return NULL  - when out of memory.
  * @return pointer to hash list node
  */
-void* hash_add(void* hash, void* key, void* cache_node);
+void* hash_add(void* hash, const void* key, void* cache_node);
 
 /**
  * @fn hash_del
@@ -67,7 +68,7 @@ void* hash_add(void* hash, void* key, void* cache_node);
  * @return 0  - when delete successfully
  * @return -1 when delete fail
  */
-int hash_del(void* hash, void* key, void* hash_node);
+int hash_del(void* hash, const void* key, void* hash_node);
 
 /**
  * @fn hash_find
@@ -78,7 +79,7 @@ int hash_del(void* hash, void* key, void* hash_node);
  * @return NULL  - not found
  * @return pointer to hash list node
  */
-void* hash_find(void* hash, void* key);
+void* hash_find(void* hash, const void* key);
 
 /**
  * @fn hash_get_count
