@@ -10,7 +10,8 @@ UT_OBJ=$(UT_SRC:.cc=.o)
 #replace *.c to *.o
 SRC_OBJ=$(patsubst %.c,%.o,$(notdir $(SRC)))
 
-INC=../include
+INC+= -I../include \
+      -I./include
 LIB= ../lib -lUnitTest++  -lgcov
 
 
@@ -22,10 +23,10 @@ UT: $(SRC_OBJ) $(UT_OBJ)
 	@mv *.gcno cov
 
 $(SRC_OBJ): 
-	gcc -g -c ${SRC} -I${INC}  -fprofile-arcs -ftest-coverage
+	gcc -g -c ${SRC} ${INC}  -fprofile-arcs -ftest-coverage
 
 $(UT_OBJ):
-	g++ -g -c $(UT_SRC) -I${INC} -fprofile-arcs -ftest-coverage
+	g++ -g -c $(UT_SRC) ${INC} -fprofile-arcs -ftest-coverage
 
 clean:
 	rm -f cache_ut
