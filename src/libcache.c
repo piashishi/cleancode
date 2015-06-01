@@ -46,13 +46,14 @@ void* libcache_create(
         LIBCACHE_CMP_KEY* cmp_key,
         LIBCACHE_KEY_TO_NUMBER* key_to_number)
 {
-    while (0 != entry_size % 4) {
-        entry_size++;
+	size_t pool_element_size = entry_size + key_size;
+    while (0 != pool_element_size % 4) {
+    	pool_element_size++;
     }
 
     libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
-    libcache->pool = pool_init(entry_size * max_entry_number, allocate_memory, free_memory);
-    return_t init_result = pool_init_element_pool(libcache->pool, entry_size, max_entry_number);
+    libcache->pool = pool_init(pool_element_size * max_entry_number, allocate_memory, free_memory);
+    return_t init_result = pool_init_element_pool(libcache->pool, pool_element_size, max_entry_number);
 
     libcache->hash_table = hash_init(key_size, cmp_key, key_to_number);
 
@@ -64,6 +65,8 @@ void* libcache_create(
     libcache->key_size = key_size;
 
     if (NULL == libcache->pool || ERR == init_result || NULL == libcache->hash_table) {
+        hash_free(libcache->hash_table);
+        free(libcache->list);
         free(libcache);
         libcache = NULL;
         printf("ERROR: file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
@@ -421,16 +424,16 @@ libcache_ret_t libcache_destroy(void * libcache)
     while (NULL != (libcache_node = list_pop_front(libcache_ptr->list))) {
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
 
-        // TODO: void hash_clean(void* hash)
-
-        // TODO: void pool_clean(element_pool_t *pool)
-
         // Note: remove node of list
         free(libcache_node_usr_data);
         free(libcache_node);
         libcache_node = NULL;
     }
+    // TODO: void hash_destroy(void* hash)
 
+    // TODO: void pool_destroy(element_pool_t *pool)
+
+    hash_free(libcache_ptr->hash_table);
     free(libcache_ptr->list);
     free(libcache_ptr);
 
