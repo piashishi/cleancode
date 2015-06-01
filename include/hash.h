@@ -18,7 +18,6 @@
 typedef struct hash_data_t {
     void* key;
     char* cache_node_ptr;
-    uint32_t used_counter;
 } hash_data_t;
 
 typedef struct bucket_t {

@@ -6,10 +6,18 @@
 #include "libpool.h"
 #include "hash.h"
 
+typedef struct libcache_node_usr_data_t
+{
+    node_t* hash_node_ptr;
+    void* pool_element_ptr;
+    uint32_t lock_counter;
+}libcache_node_usr_data_t;
+
 typedef struct libcache_t
 {
     element_pool_t* pool;
     void* hash_table;
+    list_t* list;
     size_t entry_size;
     size_t key_size;
     libcache_scale_t max_entry_number;
@@ -44,11 +52,22 @@ void* libcache_create(
 
     libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
     libcache->pool = pool_init(entry_size * max_entry_number, allocate_memory, free_memory);
-    pool_init_element_pool(libcache->pool, entry_size, max_entry_number);
+    return_t init_result = pool_init_element_pool(libcache->pool, entry_size, max_entry_number);
+
     libcache->hash_table = hash_init(key_size, cmp_key, key_to_number);
+
+    libcache->list = (list_t*)malloc(sizeof(list_t));
+    list_init(libcache->list);
+
     libcache->max_entry_number = max_entry_number;
     libcache->entry_size = entry_size;
     libcache->key_size = key_size;
+
+    if (NULL == libcache->pool || ERR == init_result || NULL == libcache->hash_table) {
+        free(libcache);
+        libcache = NULL;
+        printf("ERROR: file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+    }
 
     return libcache;
 }
@@ -68,12 +87,12 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return NULL;
     }
 
     if (NULL == key) {
-        printf("fatal error, invalid parameter: key == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return NULL;
     }
 
@@ -81,21 +100,24 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
 
     do {
         // Note: find the entry according to key
-        node_t* node = (node_t*)hash_find(libcache_ptr->hash_table, key);
-        if (NULL == node) {
+        node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, key);
+        if (NULL == hash_node) {
             break;
         }
 
-        void* entry_to_be_found = ((hash_data_t*)node->usr_data)->cache_node_ptr;
+        node_t* libcache_node = (node_t*)((hash_data_t*)hash_node->usr_data)->cache_node_ptr;
+        if (NULL == libcache_node) {
+            break;
+        }
 
         if (NULL == dst_entry) {
             // TODO: lock should be added here
-            ((hash_data_t*)node->usr_data)->used_counter++;
+            ((libcache_node_usr_data_t*)libcache_node->usr_data)->lock_counter++;
 
-            return_value = entry_to_be_found;
+            return_value = ((libcache_node_usr_data_t*)libcache_node->usr_data)->pool_element_ptr;
         } else {
             // Note: copy into dst_entry and return NULL, no lock added too
-            memcpy(dst_entry, entry_to_be_found, libcache_ptr->entry_size);
+            memcpy(dst_entry, ((libcache_node_usr_data_t*)libcache_node->usr_data)->pool_element_ptr, libcache_ptr->entry_size);
         }
     } while(0);
 
@@ -117,45 +139,55 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return NULL;
     }
 
     if (NULL == key) {
-        printf("fatal error, invalid parameter: key == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return NULL;
     }
 
     void* return_value = NULL;
 
     // Note: find node, if node isn't existed and add it
-    node_t* node = (node_t*)hash_find(libcache_ptr->hash_table, key);
     do {
-        if (NULL != node) {
-            return_value = NULL;
+        // Note: find node from hash by key
+        node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, key);
+        if (NULL != hash_node) {
             break;
         }
 
-        if (NULL == node) {
-            element_usr_data_t* element_usr_data = (element_usr_data_t*)pool_get_element(libcache_ptr->pool);
-            element_usr_data->key = (void*)malloc(sizeof(libcache_ptr->key_size));
-            memcpy(element_usr_data->key, key, libcache_ptr->key_size);
-
-            void* pool_element = element_usr_data->usr_data;
-            if (NULL == pool_element) {
-                return_value = NULL;
-                printf("the libcache is full.");
-                break;
-            }
-
-            memcpy(pool_element, src_entry, libcache_ptr->entry_size);
-            node = hash_add(libcache_ptr->hash_table, key, pool_element);
-
-            // TODO: lock should be added here
-            ((hash_data_t*)node->usr_data)->used_counter++;
-
-            return_value = ((hash_data_t*)node->usr_data)->cache_node_ptr;
+        // Note: add data into pool
+        element_usr_data_t* element_usr_data = (element_usr_data_t*)pool_get_element(libcache_ptr->pool);
+        if (NULL == element_usr_data) {
+            return_value = NULL;
+            printf("ERROR: the pool is full, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+            break;
         }
+        element_usr_data->key = (void*)malloc(sizeof(libcache_ptr->key_size));
+        memcpy(element_usr_data->key, key, libcache_ptr->key_size);
+        if (NULL != src_entry) {
+             memcpy(element_usr_data->usr_data, src_entry, libcache_ptr->entry_size);
+        }
+
+        // Note: add node into list
+        node_t* libcache_node = (node_t*)malloc(sizeof(node_t));
+        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)malloc(sizeof(libcache_node_usr_data_t));
+        libcache_node->usr_data = (void*)libcache_node_usr_data;
+        libcache_node_usr_data->pool_element_ptr = (void*)element_usr_data;
+        libcache_node_usr_data->lock_counter = 0;
+        list_push_front(libcache_ptr->list, libcache_node);
+
+        // Note: add node into hash
+        libcache_node_usr_data->hash_node_ptr = hash_add(libcache_ptr->hash_table, key, libcache_node);
+
+        // Note: the entry in cache will be locked if src_entry is NULL
+        if (NULL == src_entry) {
+            libcache_node_usr_data->lock_counter++;
+        }
+
+        return_value = element_usr_data->usr_data;
     } while(0);
 
     return return_value;
@@ -175,36 +207,45 @@ libcache_ret_t  libcache_delete_by_key(void * libcache, const void* key)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
     if (NULL == key) {
-        printf("fatal error, invalid parameter: key == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
     libcache_ret_t return_value = LIBCACHE_SUCCESS;
-    node_t* node = (node_t*)hash_find(libcache_ptr->hash_table, key);
     do {
-        if (NULL == node) {
+        node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, key);
+        if (NULL == hash_node) {
             return_value = LIBCACHE_NOT_FOUND;
             break;
         }
 
-        if (NULL != node) {
-            // TODO: should judge whether the entry is locked or not
-             if (((hash_data_t*)node->usr_data)->used_counter > 0) {
-                 return_value = LIBCACHE_LOCKED;
-                 break;
-             }
+        // Note: if the entry is locked, just return
+        node_t* libcache_node = (node_t*)((hash_data_t*)hash_node->usr_data)->cache_node_ptr;
+        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
+         if (libcache_node_usr_data->lock_counter > 0) {
+             return_value = LIBCACHE_LOCKED;
+             break;
+         }
 
-            pool_free_element(libcache_ptr->pool, ((hash_data_t*)node->usr_data)->cache_node_ptr);
+        // Note: delete node from hash
+        int value = hash_del(libcache_ptr->hash_table, key, libcache_node_usr_data->hash_node_ptr);
 
-            // TODO: hash_del should be refined according to return value
-            int value = hash_del(libcache_ptr->hash_table, key, node);
-            return_value = LIBCACHE_SUCCESS;
-        }
+        // Note: delete node from pool
+        pool_free_element(libcache_ptr->pool, libcache_node_usr_data->pool_element_ptr);
+
+        // Note: delete node from list
+        list_remove(libcache_ptr->list, libcache_node);
+
+        // Note: free node resource
+        free(libcache_node_usr_data);
+        free(libcache_node);
+
+        return_value = LIBCACHE_SUCCESS;
     } while(0);
 
     return return_value;
@@ -224,25 +265,28 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
-    libcache_ret_t return_value = LIBCACHE_SUCCESS;
+    libcache_ret_t return_value = LIBCACHE_FAILURE;
     void* key = pool_get_key_by_element_address(libcache_ptr->pool, entry);
 
     do {
+        // Note: judge whether entry is existed in cache
         if (NULL == key) {
             return_value = LIBCACHE_NOT_FOUND;
             break;
         }
 
-        // TODO: if entry is locked
-        node_t* node = (node_t*)hash_find(libcache_ptr->hash_table, key);
-        if (((hash_data_t*)node->usr_data)->used_counter > 0) {
-            return_value = LIBCACHE_LOCKED;
-            break;
-        }
+        // Note: judge whether entry is locked
+        node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, key);
+        node_t* libcache_node = (node_t*)((hash_data_t*)hash_node->usr_data)->cache_node_ptr;
+        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
+         if (libcache_node_usr_data->lock_counter > 0) {
+             return_value = LIBCACHE_LOCKED;
+             break;
+         }
 
         return_value = libcache_delete_by_key(libcache_ptr->hash_table, key);
     } while(0);
@@ -264,21 +308,23 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
 
-    libcache_ret_t return_value = LIBCACHE_SUCCESS;
+    libcache_ret_t return_value = LIBCACHE_FAILURE;
     void* key = pool_get_key_by_element_address(libcache_ptr->pool, entry);
-    node_t* node = (node_t*)hash_find(libcache_ptr->hash_table, key);
+    node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, key);
 
-    if (NULL == node) {
+    if (NULL == hash_node) {
         return_value = LIBCACHE_NOT_FOUND;
     } else {
-        // TODO: unlock entry
-        if (((hash_data_t*)node->usr_data)->used_counter > 0) {
-            ((hash_data_t*)node->usr_data)->used_counter--;
+        // Note: unlock entry
+        node_t* libcache_node = (node_t*)((hash_data_t*)hash_node->usr_data)->cache_node_ptr;
+        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
+        if (libcache_node_usr_data->lock_counter > 0) {
+            libcache_node_usr_data->lock_counter--;
         }
         return_value = LIBCACHE_SUCCESS;
     }
@@ -297,7 +343,7 @@ libcache_scale_t libcache_get_max_entry_number(const void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
     return libcache_ptr->max_entry_number;
@@ -314,7 +360,7 @@ libcache_scale_t libcache_get_entry_number(const void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
@@ -334,13 +380,23 @@ libcache_ret_t libcache_clean(void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
-    // TODO: void hash_clean(void* hash)
+    node_t* libcache_node = NULL;
+    while (NULL != (libcache_node = list_pop_front(libcache_ptr->list))) {
+        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
 
-    // TODO: void pool_clean(element_pool_t *pool)
+        // TODO: void hash_clean(void* hash)
+
+        // TODO: void pool_clean(element_pool_t *pool)
+
+        // Note: remove node of list
+        free(libcache_node_usr_data);
+        free(libcache_node);
+        libcache_node = NULL;
+    }
 
     return LIBCACHE_SUCCESS;
 }
@@ -357,14 +413,25 @@ libcache_ret_t libcache_destroy(void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("fatal error, invalid parameter: libcache == NULL");
+        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
         return LIBCACHE_FAILURE;
     }
 
-    hash_free(libcache_ptr->hash_table);
+    node_t* libcache_node = NULL;
+    while (NULL != (libcache_node = list_pop_front(libcache_ptr->list))) {
+        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
 
-    // TODO: void pool_free(element_pool_t *pool)
+        // TODO: void hash_clean(void* hash)
 
+        // TODO: void pool_clean(element_pool_t *pool)
+
+        // Note: remove node of list
+        free(libcache_node_usr_data);
+        free(libcache_node);
+        libcache_node = NULL;
+    }
+
+    free(libcache_ptr->list);
     free(libcache_ptr);
 
     return LIBCACHE_SUCCESS;
