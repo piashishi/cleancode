@@ -20,7 +20,7 @@ int64_t  timeval_subtract(struct timeval* result, struct timeval* x, struct time
         expression;\
         gettimeofday(&t1, 0);\
         td_usec = timeval_subtract(&td, &t0, &t1);\
-        printf("%s usec = %ld\n", name, td_usec);\
+        printf("%s usec = %"PRIu64"\n", name, td_usec);\
 }while(0)
 
 #endif /* LIB_PETE_H_ */

@@ -26,7 +26,7 @@ $(SRC_OBJ):
 	gcc -g -c ${SRC} ${INC}  -fprofile-arcs -ftest-coverage
 
 $(UT_OBJ):
-	g++ -g -c $(UT_SRC) ${INC} -fprofile-arcs -ftest-coverage
+	g++ -D__STDC_FORMAT_MACROS -g -c $(UT_SRC) ${INC} -fprofile-arcs -ftest-coverage
 
 clean:
 	rm -f cache_ut

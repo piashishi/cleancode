@@ -17,8 +17,8 @@
 
 typedef struct to_find_node_t
 {
-	void* g_key;
-	LIBCACHE_CMP_KEY* g_kcmp;
+	const void* key;
+	LIBCACHE_CMP_KEY* kcmp;
 }to_find_node_t;
 
 
@@ -43,7 +43,7 @@ static int find_node(node_t* node, void* usr_data)
         return -1;
     }
     hash_data_t* hd = (hash_data_t*)node->usr_data;
-    return to_find_node->g_kcmp(to_find_node->g_key, hd->key);
+    return to_find_node->kcmp(to_find_node->key, hd->key);
 }
 
 static void free_node(node_t* node)
@@ -172,8 +172,8 @@ void* hash_find(void* hash_table, const void* key)
         return NULL;
     } else {
     	to_find_node_t to_find_node;
-    	to_find_node.g_key = key;
-    	to_find_node.g_kcmp = hash->kcmp;
+    	to_find_node.key = key;
+    	to_find_node.kcmp = hash->kcmp;
         node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*)&to_find_node);
         if (node == NULL) {
             printf("Can't find the key\n");

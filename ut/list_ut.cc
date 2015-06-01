@@ -9,7 +9,7 @@ static node_t gNode;
 
 static int traverse_node(node_t *node)
 {
-    printf("Expect node address: %X; Get node address: %X.\n", &gNode, node);
+    printf("Expect node address: %p; Get node address: %p.\n", &gNode, node);
     return !(&gNode == node);
 }
 

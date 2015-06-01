@@ -9,6 +9,7 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "UnitTest++.h"
 #include "TestReporter.h"
 #include "TestDetails.h"
@@ -101,20 +102,20 @@ libcache_test_insertion(void * libcache)
         liblb_cache_entry_t* entry_exp;
         if (entry != NULL)
         {
-            printf("libcache_lookup ERROR! %lu\n", key.imsi.val.imsi64bit);
+            printf("libcache_lookup ERROR! %"PRIu64"\n", key.imsi.val.imsi64bit);
             return TEST_FAILURE;
         }
         entry = (liblb_cache_entry_t*)libcache_add(libcache, &key, NULL);
         if (entry == NULL)
         {
-            printf("lib_cache_add ERROR! %lu\n", key.imsi.val.imsi64bit);
+            printf("lib_cache_add ERROR! %"PRIu64"\n", key.imsi.val.imsi64bit);
             return TEST_FAILURE;
         }
 
         entry_exp = (liblb_cache_entry_t*)libcache_add(libcache, &key, NULL);
         if (entry_exp != NULL)
         {
-            printf("lib_cache_add ERROR! %lu\n", key.imsi.val.imsi64bit);
+            printf("lib_cache_add ERROR! %"PRIu64"\n", key.imsi.val.imsi64bit);
             return TEST_FAILURE;
         }
 
@@ -144,7 +145,7 @@ libcache_test_deletion(void * libcache)
         {
             if(key.imsi.val.imsi64bit == 0)
                 break;
-            printf("libcache_lookup after insertion, ERROR! key = %lu\n",
+            printf("libcache_lookup after insertion, ERROR! key = %"PRIu64"\n",
                     key.imsi.val.imsi64bit);
             return TEST_FAILURE;
         }
@@ -160,7 +161,7 @@ libcache_test_deletion(void * libcache)
         entry = (liblb_cache_entry_t*)libcache_lookup(libcache, (void*)&key, NULL);
         if (entry != NULL)
         {
-            printf("hashtable_delete_by_node ERROR! key = %lu\n",
+            printf("hashtable_delete_by_node ERROR! key = %"PRIu64"\n",
                     key.imsi.val.imsi64bit);
             return TEST_FAILURE;
         }

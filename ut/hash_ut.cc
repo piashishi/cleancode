@@ -7,6 +7,7 @@
 extern "C" {
 
 #include "hash.h"
+#include "libcache_def.h"
 
 typedef struct test_data_t
 {
@@ -20,17 +21,17 @@ u32 test_key_to_int(const void* key)
     return *value;
 }
 
-int test_key_com(const void* key1, const void* key2)
+libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
 {
     u32* a = (u32*) key1;
     u32* b = (u32*) key2;
 
     if (*a == *b) {
-        return 0;
+        return LIBCACHE_EQU;
     } else if (*a < *b) {
-        return -1;
+        return LIBCACHE_SMALLER;
     } else {
-        return 1;
+        return LIBCACHE_BIGER;
     }
 }
 }
