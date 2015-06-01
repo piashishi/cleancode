@@ -78,7 +78,7 @@ void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER*
     hash->k2num = key_to_num;
 
     int i = 0;
-    while (i < MAX_BUCKETS) {
+    while (i <= MAX_BUCKETS) {
         hash->bucket_list[i].list_count = 0;
         hash->bucket_list[i].list = NULL;
         i++;
@@ -135,7 +135,7 @@ int hash_del(void* hash_table, const void* key, void* hash_node)
     hash_t* hash = (hash_t*) hash_table;
 
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code >= MAX_BUCKETS) {
+    if (hash_code > MAX_BUCKETS) {
         printf("hash key is invalid");
         return -1;
     }
@@ -162,7 +162,7 @@ void* hash_find(void* hash_table, const void* key)
 
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code >= MAX_BUCKETS) {
+    if (hash_code > MAX_BUCKETS) {
         printf("hash key is invalid");
         return NULL;
     }
@@ -193,7 +193,7 @@ int hash_get_count(void* hash_table)
 }
 
 
-void hash_free(void* hash_table)
+static void hash_release(void* hash_table, int is_destroy)
 {
     if(hash_table == NULL)
     {
@@ -208,7 +208,28 @@ void hash_free(void* hash_table)
         {
             list_clear(bucket->list, free_node);
             free(bucket->list);
+            bucket->list = NULL;
+            bucket->list_count = 0;
         }
     }
-    free(hash);
+    if(is_destroy)
+    {
+        free(hash);
+    }
+    else 
+    {
+       hash->entry_count = 0;
+    }
+}
+
+
+void hash_free(void* hash)
+{
+    hash_release(hash, FALSE);
+}
+
+
+void hash_destroy(void* hash)
+{
+    hash_release(hash, TRUE);
 }

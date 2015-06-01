@@ -51,9 +51,10 @@ struct HashFixture {
     int init_hash_table()
     {
         list = (list_t*) malloc(sizeof(list_t));
+        list_init(list);
+
         node_t* list_entry = NULL;
         node_t* hash_entry = NULL;
-        list_init(list);
 
         int i = 0;
         for (i = 0; i < 655350; i++) {
@@ -93,6 +94,11 @@ TEST_FIXTURE(HashFixture, TestAddHash)
         }
     }
     CHECK(count == 655350);
+
+    hash_free(g_hash);
+    CHECK(g_hash->entry_count == 0);
+    CHECK(g_hash->bucket_list[0].list == NULL);
+    CHECK(g_hash->bucket_list[0].list_count  == 0);
 }
 
 TEST_FIXTURE(HashFixture, TestFindHash)
@@ -103,16 +109,19 @@ TEST_FIXTURE(HashFixture, TestFindHash)
     int value = 2000;
     node_t* node = (node_t*) hash_find(g_hash, &value);
     CHECK(node != NULL);
+
     int* p1 = (int*) (((test_data_t*)node->usr_data)->key);
     node_t* pp = (node_t*)(((test_data_t*)node->usr_data)->entry);
     hash_data_t* hd = (hash_data_t*)pp->usr_data;
     int* p2 = (int*) hd->key;
+
     CHECK(*p1 == 2000);
     CHECK(*p2 == 2000);
 
     int value2 = 655360;
     node = (node_t*) hash_find(g_hash, &value2);
     CHECK(node == NULL);
+    hash_free(g_hash);
 }
 
 TEST_FIXTURE(HashFixture, TestDelHash)
@@ -120,14 +129,16 @@ TEST_FIXTURE(HashFixture, TestDelHash)
     int ret = init_hash_table();
     CHECK(ret == 0);
 
+    //65549 is the first element in list
     int value = 655349;
     node_t* node = (node_t*) hash_find(g_hash, &value);
-    hash_data_t* hd2 = (hash_data_t*)node->usr_data;
     CHECK(node != NULL);
 
+    //get the first elements
+    node_t* node2 = list_pop_front(list);
+    test_data_t* td = (test_data_t*)node2->usr_data;
 
-    node = list_pop_front(list);
-    ret = hash_del(g_hash, hd2->key, node);
+    ret = hash_del(g_hash, &value, td->entry);
     CHECK(ret == 0);
 
     node = (node_t*) hash_find(g_hash, &value);
@@ -135,5 +146,7 @@ TEST_FIXTURE(HashFixture, TestDelHash)
 
     int count = hash_get_count(g_hash);
     CHECK(count == 655349);
+    
+    hash_destroy(g_hash);
 }
 

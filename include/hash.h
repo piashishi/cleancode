@@ -27,7 +27,7 @@ typedef struct bucket_t {
 
 typedef struct hash_t {
     int entry_count;
-    bucket_t bucket_list[MAX_BUCKETS];
+    bucket_t bucket_list[MAX_BUCKETS+1];
     int key_size;
     LIBCACHE_CMP_KEY* kcmp;
     LIBCACHE_KEY_TO_NUMBER* k2num;
@@ -97,6 +97,14 @@ int hash_get_count(void* hash);
  * @param [in] hash - hash table
  */
 void hash_free(void* hash);
+
+/**
+ * @fn hash_destroy
+ *
+ * @brief destroy hash_table
+ * @param [in] hash - hash table
+ */
+void hash_destroy(void* hash);
 
 #endif
 
