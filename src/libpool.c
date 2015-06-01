@@ -117,7 +117,7 @@ void* pool_get_element(element_pool_t *pool)
         return NULL;
     } else {
         list_push_back(&pool->busy_list, node);
-        return node->usr_data;
+        return ((element_usr_data_t*)node->usr_data)->usr_data;
     }
 }
 
