@@ -28,9 +28,21 @@ typedef enum return_t {
 } return_t;
 
 typedef struct element_usr_data_t{
-    void* element_data;
     void* key;
+    node_t* to_node;
 }element_usr_data_t;
+
+typedef struct pool_attr_t {
+    size_t entry_size;
+    int entry_acount;
+} pool_attr_t;
+
+typedef enum pool_type_e {
+    POOL_TYPE_DATA,
+    POOL_TYPE_MAX,
+} pool_type_e;
+
+element_pool_t* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_acount, pool_attr_t pool_attr[]);
 
 /**
  * @fn pool_init
@@ -41,9 +53,6 @@ typedef struct element_usr_data_t{
  * @param free_memory           function to free whole cache object, e.g. free().
  * @return -  pool pointer, return NULL when failed
  */
-element_pool_t* pool_init(size_t size,
-                          LIBCACHE_ALLOCATE_MEMORY* allocate_memory,
-                          LIBCACHE_FREE_MEMORY* free_memory);
 
 /**
  * @fn pool_init_element_pool
@@ -54,7 +63,6 @@ element_pool_t* pool_init(size_t size,
  * @param [in] entry_count - entry count
  * @return -  OK / ERR
  */
-int pool_init_element_pool(element_pool_t *pool, size_t entry_size, int entry_count);
 
 /**
  * @fn pool_get_element
@@ -63,7 +71,7 @@ int pool_init_element_pool(element_pool_t *pool, size_t entry_size, int entry_co
  * @param [in] pool - pool pointer, should initiated by pool_init first.
  * @return -  a point to element memory (NULL for failed)
  */
-void* pool_get_element(element_pool_t *pool);
+void* pool_get_element(element_pool_t *pools, pool_type_e pool_type);
 
 /**
  * @fn pool_free_element
@@ -73,7 +81,7 @@ void* pool_get_element(element_pool_t *pool);
  * @param [in] element  - element address
  * @return -  OK / ERR
  */
-int pool_free_element(element_pool_t *pool, void* element);
+int pool_free_element(element_pool_t *pools, pool_type_e pool_type, void* element);
 
 /**
  * @fn pool_get_key_by_element_address
@@ -83,7 +91,7 @@ int pool_free_element(element_pool_t *pool, void* element);
  * @param [in] element  - element address
  * @return - a point to element memory(NULL: not found or parameter error)
  */
-void* pool_get_key_by_element_address(element_pool_t *pool, void* element);
+void** pool_get_key_address_by_element_address(element_pool_t *pools, pool_type_e pool_type, void* element);
 
 #ifdef __cplusplus
 }
