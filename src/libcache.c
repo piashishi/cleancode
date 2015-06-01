@@ -168,7 +168,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         element_usr_data->key = (void*)malloc(sizeof(libcache_ptr->key_size));
         memcpy(element_usr_data->key, key, libcache_ptr->key_size);
         if (NULL != src_entry) {
-             memcpy(element_usr_data->usr_data, src_entry, libcache_ptr->entry_size);
+             memcpy(element_usr_data->element_data, src_entry, libcache_ptr->entry_size);
         }
 
         // Note: add node into list
@@ -187,7 +187,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
             libcache_node_usr_data->lock_counter++;
         }
 
-        return_value = element_usr_data->usr_data;
+        return_value = element_usr_data->element_data;
     } while(0);
 
     return return_value;

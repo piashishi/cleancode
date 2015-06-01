@@ -28,7 +28,7 @@ typedef enum return_t {
 } return_t;
 
 typedef struct element_usr_data_t{
-    void* usr_data;
+    void* element_data;
     void* key;
 }element_usr_data_t;
 
