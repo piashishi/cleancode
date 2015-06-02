@@ -46,9 +46,9 @@ void* libcache_create(
         LIBCACHE_CMP_KEY* cmp_key,
         LIBCACHE_KEY_TO_NUMBER* key_to_number)
 {
-	size_t pool_element_size = entry_size + key_size;
+    size_t pool_element_size = entry_size + key_size;
     while (0 != pool_element_size % 4) {
-    	pool_element_size++;
+        pool_element_size++;
     }
 
     libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
@@ -73,7 +73,7 @@ void* libcache_create(
         free(libcache->list);
         free(libcache);
         libcache = NULL;
-        printf("ERROR: file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("init %s failed.", (NULL == libcache->pool) ? "pool" : "hash");
     }
 
     return libcache;
@@ -94,12 +94,12 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return NULL;
     }
 
     if (NULL == key) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "key");
         return NULL;
     }
 
@@ -146,12 +146,12 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return NULL;
     }
 
     if (NULL == key) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "key");
         return NULL;
     }
 
@@ -169,7 +169,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         void* element_address = (element_usr_data_t*)pool_get_element(libcache_ptr->pool, POOL_TYPE_DATA);
         if (NULL == element_address) {
             return_value = NULL;
-            printf("ERROR: the pool is full, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+            DEBUG_ERROR("input parameter %s is null, the pool is full.", "element_address");
             break;
         }
 
@@ -216,12 +216,12 @@ libcache_ret_t  libcache_delete_by_key(void * libcache, const void* key)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
 
     if (NULL == key) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "key");
         return LIBCACHE_FAILURE;
     }
 
@@ -274,7 +274,7 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
 
@@ -319,7 +319,7 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
 
@@ -354,7 +354,7 @@ libcache_scale_t libcache_get_max_entry_number(const void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
     return libcache_ptr->max_entry_number;
@@ -371,7 +371,7 @@ libcache_scale_t libcache_get_entry_number(const void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
 
@@ -391,7 +391,7 @@ libcache_ret_t libcache_clean(void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
 
@@ -424,7 +424,7 @@ libcache_ret_t libcache_destroy(void * libcache)
 {
     libcache_t* libcache_ptr = (libcache_t*)libcache;
     if (NULL == libcache_ptr) {
-        printf("ERROR: invalid parameter, file: %s, line: %d, function: %s\n",__FILE__,__LINE__,__FUNCTION__);
+        DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
     }
 
