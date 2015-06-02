@@ -37,9 +37,10 @@ libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
 }
 
 struct HashFixture {
-    hash_t* g_hash = NULL;
+    hash_t* g_hash;
     HashFixture()
     {
+        g_hash = NULL;
         g_hash = (hash_t*)hash_init(sizeof(int), test_key_com, test_key_to_int);
     }
     ~HashFixture()
