@@ -167,41 +167,30 @@ int list_remove(list_t *list, node_t *node)
         return FALSE;
     }
 
-    int return_value = FALSE;
-    node_t *currentNode = list->head_node;
-    while (currentNode) {
-        if (node != currentNode) {
-            currentNode = currentNode->next_node;
-            continue;
-        }
-
-        if (node == list->head_node) {
-            if (list->head_node->next_node) {
-                list->head_node->next_node->previous_node = NULL;
-                list->head_node = list->head_node->next_node;
-            } else {
-                list->head_node = NULL;
-                list->tail_node = NULL;
-            }
-        } else if (node == list->tail_node) {
-            if (list->tail_node->previous_node) {
-                list->tail_node->previous_node->next_node = NULL;
-                list->tail_node = list->tail_node->previous_node;
-            } else {
-                list->head_node = NULL;
-                list->tail_node = NULL;
-            }
+    if (node == list->head_node) {
+        if (list->head_node->next_node) {
+            list->head_node->next_node->previous_node = NULL;
+            list->head_node = list->head_node->next_node;
         } else {
-            currentNode->previous_node->next_node = currentNode->next_node;
-            currentNode->next_node->previous_node = currentNode->previous_node;
+            list->head_node = NULL;
+            list->tail_node = NULL;
         }
-
-        list->total_nodes--;
-        return_value = TRUE;
-        break;
+    } else if (node == list->tail_node) {
+        if (list->tail_node->previous_node) {
+            list->tail_node->previous_node->next_node = NULL;
+            list->tail_node = list->tail_node->previous_node;
+        } else {
+            list->head_node = NULL;
+            list->tail_node = NULL;
+        }
+    } else {
+        node->previous_node->next_node = node->next_node;
+        node->next_node->previous_node = node->previous_node;
     }
 
-    return return_value;
+    list->total_nodes--;
+
+    return TRUE;
 }
 
 /**
