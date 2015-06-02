@@ -224,10 +224,3 @@ TEST(libcache_unit_test)
     CHECK(libcache_get_entry_number(libcache) == 0);
     libcache_test_destroy(libcache);
  }
-
-TEST(utcase)
-{
-	int p1 =1;
-	int p2 =2;
-	CHECK_EQUAL(p1, p2);
-}

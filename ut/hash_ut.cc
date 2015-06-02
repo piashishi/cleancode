@@ -15,16 +15,16 @@ typedef struct test_data_t
     void* entry;
 }test_data_t;
 
-u32 test_key_to_int(const void* key)
+uint32_t test_key_to_int(const void* key)
 {
-    u32* value = (u32*) key;
+    uint32_t* value = (uint32_t*) key;
     return *value;
 }
 
 libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
 {
-    u32* a = (u32*) key1;
-    u32* b = (u32*) key2;
+    uint32_t* a = (uint32_t*) key1;
+    uint32_t* b = (uint32_t*) key2;
 
     if (*a == *b) {
         return LIBCACHE_EQU;
@@ -87,7 +87,7 @@ TEST_FIXTURE(HashFixture, TestAddHash)
     CHECK(count == 655350);
 
     int i = 0;
-    u32 sum = 0;
+    uint32_t sum = 0;
     for (i = 0; i <= MAX_BUCKETS; i++) {
         bucket_t bucket = g_hash->bucket_list[i];
         if (bucket.list != NULL) {

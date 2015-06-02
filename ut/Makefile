@@ -1,4 +1,4 @@
-UT_SRC= main.cc libpete.cc libpool_ut.cc libcache_test.cc hash_ut.cc list_ut.cc
+UT_SRC= main.cc libpete.cc libpool_ut.cc libcache_test.cc libcache_ut.cc  hash_ut.cc list_ut.cc
 
 SRC = ../src/list.c \
       ../src/hash.c \
