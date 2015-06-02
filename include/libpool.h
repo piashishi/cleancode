@@ -16,10 +16,11 @@ typedef struct pool_cb_t {
 typedef struct element_pool_t {
     list_t busy_list;
     list_t free_list;
+    void* node_start_mem;
+    size_t node_start_mem_size;
     void* start_memory;
     size_t memory_size;
     size_t element_size;
-    node_t** element_link;
     pool_cb_t cb;
 } element_pool_t;
 

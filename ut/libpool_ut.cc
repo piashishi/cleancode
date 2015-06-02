@@ -42,25 +42,23 @@ TEST(libpool_ut_get_element)
 
     void * entry_stack[entry_count];
 
-    printf("*** libpool_ut_get_element\n");
     int i;
     void *entry;
     for (i = 0; i < entry_count; i++) {
         entry = pool_get_element(pools, POOL_TYPE_DATA);
         CHECK_EQUAL(entry != (void* )NULL, TRUE);
 
-        printf("entry[%d] = %p\n", i, entry);
+        // printf("entry[%d] = %X\n", i, entry);
         entry_stack[i] = entry;
     }
 
-    printf("entry[%d] = %p\n", i, entry);
+    // printf("entry[%d] = %X\n", i, entry);
 
     entry = pool_get_element(pools, POOL_TYPE_DATA);
     CHECK_EQUAL(entry == (void* )NULL, TRUE);
 
     int ret;
     for (i = 0; i < entry_count; i++) {
-//        ret = pool_free_element(pool, entry_stack[i]);
         ret = pool_free_element(pools, POOL_TYPE_DATA, entry_stack[i]);
         CHECK_EQUAL(ret, OK);
     }
