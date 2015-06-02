@@ -102,9 +102,9 @@ void list_push_back(list_t *list, node_t *node);
  * @brief remove element.
  * @param [in] list - list pointer
  * @param [in] node - node to be removed
- * @return  - none
+ * @return  int - TRUE: removed; FALSE: error or node not found
  */
-void list_remove(list_t *list, node_t *node);
+int list_remove(list_t *list, node_t *node);
 
 /**
  * @fn list_pop_front

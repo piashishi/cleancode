@@ -6,6 +6,7 @@
  */
 
 #include "list.h"
+#include "libcache_def.h"
 
 #ifndef NULL
 #ifdef __cplusplus
@@ -154,18 +155,19 @@ void list_push_back(list_t *list, node_t *node)
  * @brief remove element.
  * @param [in] list - list pointer
  * @param [in] node - node to be removed
- * @return  - none
+ * @return  int - TRUE: removed; FALSE: error or node not found
  */
-void list_remove(list_t *list, node_t *node)
+int list_remove(list_t *list, node_t *node)
 {
     if (NULL == list || NULL == node) {
-        return;
+        return FALSE;
     }
 
     if (list_empty(list)) {
-        return;
+        return FALSE;
     }
 
+    int return_value = FALSE;
     node_t *currentNode = list->head_node;
     while (currentNode) {
         if (node != currentNode) {
@@ -195,8 +197,11 @@ void list_remove(list_t *list, node_t *node)
         }
 
         list->total_nodes--;
+        return_value = TRUE;
         break;
     }
+
+    return return_value;
 }
 
 /**
