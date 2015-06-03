@@ -37,7 +37,7 @@ TEST(libpool_ut_get_element)
     CHECK_EQUAL(!large_mem, 0);
 
     pool_attr_t pool_attr[] = {{element_size, entry_count}};
-    element_pool_t *pools = pools_init(large_mem, large_mem_size, POOL_TYPE_MAX, pool_attr);
+    void *pools = pools_init(large_mem, large_mem_size, POOL_TYPE_MAX, pool_attr);
     CHECK_EQUAL(!pools, 0);
 
     void * entry_stack[entry_count];

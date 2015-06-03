@@ -15,7 +15,7 @@ typedef struct libcache_node_usr_data_t
 
 typedef struct libcache_t
 {
-    element_pool_t* pool;
+    void* pool;
     void* hash_table;
     list_t* list;
     size_t entry_size;
@@ -52,9 +52,11 @@ void* libcache_create(
     }
 
     libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
-    size_t large_mem_size = 9999;//TODO
-    void *large_memory = malloc(large_mem_size);
+
     pool_attr_t pool_attr[] = {{entry_size, max_entry_number}};
+    size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
+
+    void *large_memory = malloc(large_mem_size);
     libcache->pool = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
     // libcache->pool = pool_init(entry_size * max_entry_number, allocate_memory, free_memory);
     // return_t init_result = pool_init_element_pool(libcache->pool, entry_size, max_entry_number);
