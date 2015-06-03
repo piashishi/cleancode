@@ -38,22 +38,25 @@ libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
 
 struct HashFixture {
     hash_t* g_hash;
+    list_t* list;
+
     HashFixture()
     {
-        g_hash = NULL;
         g_hash = (hash_t*)hash_init(sizeof(int), test_key_com, test_key_to_int);
+        list = (list_t*) malloc(sizeof(list_t));
+        list_init(list);
     }
     ~HashFixture()
     {
-
+        node_t* list_entry = NULL;
+        while (NULL != list && list_size(list) > 0 && (NULL != (list_entry = list_pop_front(list)))) {
+            free(list_entry);
+        }
+        free(list);
     }
-    list_t* list;
 
     int init_hash_table()
     {
-        list = (list_t*) malloc(sizeof(list_t));
-        list_init(list);
-
         node_t* list_entry = NULL;
         node_t* hash_entry = NULL;
 
