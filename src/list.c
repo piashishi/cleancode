@@ -292,7 +292,7 @@ void list_clear(list_t *list, void (*remove_node_cb)(node_t *node))
         if (remove_node_cb) {
             remove_node_cb(node_to_be_removed);
         }
-        node_to_be_removed = list_pop_front(list);
+        node_to_be_removed = list_empty(list) ? NULL : list_pop_front(list);
     }
 }
 
