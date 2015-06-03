@@ -109,7 +109,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
     }
     node->usr_data = (hash_data_t*) malloc(sizeof(hash_data_t));
     hash_data_t* hd =(hash_data_t*)node->usr_data;
-    hd->key = malloc(sizeof(hash->key_size) + 1);
+    hd->key = malloc(hash->key_size);
     memset(hd->key, 0, hash->key_size + 1);
     memcpy(hd->key, key, hash->key_size);
 

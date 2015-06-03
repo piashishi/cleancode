@@ -177,7 +177,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         }
 
         void** key_address = pool_get_key_address_by_element_address(libcache_ptr->pool, POOL_TYPE_DATA, element_address);
-        *key_address = (void*)malloc(sizeof(libcache_ptr->key_size));
+        *key_address = (void*)malloc(libcache_ptr->key_size);
         memcpy(*key_address, key, libcache_ptr->key_size);
         if (NULL != src_entry) {
              memcpy(element_address, src_entry, libcache_ptr->entry_size);
