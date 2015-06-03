@@ -17,8 +17,8 @@
 
 typedef struct to_find_node_t
 {
-	const void* key;
-	LIBCACHE_CMP_KEY* kcmp;
+    const void* key;
+    LIBCACHE_CMP_KEY* kcmp;
 }to_find_node_t;
 
 
@@ -37,9 +37,9 @@ static u32 key_to_hash(hash_t* hash, const void* key)
 
 static int find_node(node_t* node, void* usr_data)
 {
-	to_find_node_t* to_find_node = (to_find_node_t*)usr_data;
+    to_find_node_t* to_find_node = (to_find_node_t*)usr_data;
     if (node == NULL) {
-        printf("fatal error, invalid parameter");
+        DEBUG_ERROR("input parameter %s is null.", "node");
         return -1;
     }
     hash_data_t* hd = (hash_data_t*)node->usr_data;
@@ -49,6 +49,7 @@ static int find_node(node_t* node, void* usr_data)
 static void free_node(node_t* node)
 {
     if (node == NULL) {
+        DEBUG_ERROR("input parameter %s is null.", "node");
         return ;
     }
     hash_data_t* hd = (hash_data_t*) node->usr_data;
@@ -68,7 +69,7 @@ void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER*
 {
     hash_t* hash = (hash_t*) malloc(sizeof(hash_t));
     if (hash == NULL) {
-        printf("hash init failed: ouf of memory!");
+        DEBUG_ERROR("%s init failed: ouf of memory!", "hash");
         return NULL;
     }
 
@@ -89,19 +90,21 @@ void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER*
 void* hash_add(void* hash_table, const void* key, void* cache_node)
 {
     if (hash_table == NULL || key == NULL) {
-        printf("invalid parameter\n");
+        DEBUG_ERROR("input parameter %s %s is null.",
+                (NULL == hash_table) ? "hash_table" : "",
+                (NULL == key) ? "key" : "");
         return NULL;
     }
     hash_t* hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code > MAX_BUCKETS) {
-        printf("hash key is invalid:%d\n", hash_code);
+        DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
 
     node_t* node = (node_t*) malloc(sizeof(node_t));
     if (node == NULL) {
-        printf("get memory failed, out of memory!");
+        DEBUG_ERROR("%s get memory failed, out of memory!", "hash");
         return NULL;
     }
     node->usr_data = (hash_data_t*) malloc(sizeof(hash_data_t));
@@ -129,20 +132,23 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
 int hash_del(void* hash_table, const void* key, void* hash_node)
 {
     if (hash_table == NULL || hash_node == NULL || key == NULL) {
-        printf("invalid parameter");
+        DEBUG_ERROR("input parameter %s %s %s is null.",
+                (NULL == hash_table) ? "hash_table" : "",
+                (NULL == key) ? "key" : "",
+                (NULL == hash_node) ? "hash_node" : "");
         return -1;
     }
     hash_t* hash = (hash_t*) hash_table;
 
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code > MAX_BUCKETS) {
-        printf("hash key is invalid");
+        DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return -1;
     }
 
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
     if (bucket->list == NULL) {
-        printf("Fatal error, hash_list is NULL");
+        DEBUG_ERROR("%s is NULL.", "hash_list");
         return -1;
     } else {
         node_t* node = (node_t*) hash_node;
@@ -157,26 +163,29 @@ int hash_del(void* hash_table, const void* key, void* hash_node)
 void* hash_find(void* hash_table, const void* key)
 {
     if (hash_table == NULL || key == NULL) {
+        DEBUG_ERROR("input parameter %s %s is null.",
+                (NULL == hash_table) ? "hash_table" : "",
+                (NULL == key) ? "key" : "");
         return NULL;
     }
 
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code > MAX_BUCKETS) {
-        printf("hash key is invalid");
+        DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
     if (bucket->list == NULL) {
-        printf("Fatal error, hash_list is NULL");
+        DEBUG_ERROR("%s is NULL.", "hash_list");
         return NULL;
     } else {
-    	to_find_node_t to_find_node;
-    	to_find_node.key = key;
-    	to_find_node.kcmp = hash->kcmp;
+        to_find_node_t to_find_node;
+        to_find_node.key = key;
+        to_find_node.kcmp = hash->kcmp;
         node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*)&to_find_node);
         if (node == NULL) {
-            printf("Can't find the key\n");
+            DEBUG_ERROR(" %s can't find the key.", "list_foreach_with_usr_data");
             return NULL;
         }
         return node;
@@ -186,6 +195,7 @@ void* hash_find(void* hash_table, const void* key)
 int hash_get_count(void* hash_table)
 {
     if (hash_table == NULL) {
+        DEBUG_ERROR("input parameter %s is null.", "hash_table");
         return -1;
     }
     hash_t* hash = (hash_t*) hash_table;
@@ -195,8 +205,8 @@ int hash_get_count(void* hash_table)
 
 static void hash_release(void* hash_table, int is_destroy)
 {
-    if(hash_table == NULL)
-    {
+    if(hash_table == NULL) {
+        DEBUG_ERROR("input parameter %s is null.", "hash_table");
         return;
     }
     hash_t* hash = (hash_t*)hash_table;
