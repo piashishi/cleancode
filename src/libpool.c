@@ -40,7 +40,7 @@ element_pool_t* get_pool_ctrl(void* pools, int index)
 {
     pools_count_t* pool_count =(pools_count_t*)pools;
     if (*pool_count < index) {
-        printf("get_pool_ctrl ERROR!!! \n");
+        DEBUG_ERROR("invalid index while get pool, index = %d", index);
         return NULL;
     }
 
@@ -89,8 +89,6 @@ element_usr_data_t* pool_get_element_addr(element_pool_t* pool, int j)
 // | ... |
 void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_acount, pool_attr_t pool_attr[])
 {
-    printf("poolp_init - large_memory = %X \n", large_memory);
-
     size_t total_length = pool_caculate_total_length(pool_acount, pool_attr);
     if (large_mem_size < total_length) {
         return NULL;
@@ -102,10 +100,8 @@ void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_aco
     element_pool_t** pool_pointers = (element_pool_t**) ((char*) large_memory + sizeof(pools_count_t));
     element_pool_t* pool = (element_pool_t*) ((char*) large_memory + sizeof(pools_count_t)
             + sizeof(element_pool_t*) * pool_acount);
-    printf("poolp_init - pool_pointers = %X \n", pool_pointers);
     int i;
     for (i = 0; i < pool_acount; i++) {
-        printf("poolp_init - pool[%d]          = %X \n", i, pool);
         pool_pointers[i] = pool;
 
         memset(pool, '\0', sizeof(element_pool_t));
@@ -120,8 +116,6 @@ void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_aco
         for (j = 0; j < pool->element_acount; j++) {
             node_t* node = pool_get_node_addr(pool, j);
             element_usr_data_t* elements_addr = pool_get_element_addr(pool, j);
-            printf("poolp_init - node[%d]          = %X \n", j, node);
-            printf("poolp_init - elements_addr[%d] = %X \n", j, elements_addr);
 
             elements_addr->check_value = MAGIC_CHECK_VALUE;
             elements_addr->key = NULL;
@@ -137,58 +131,47 @@ void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_aco
     }
 
     return (element_pool_t**) large_memory;
-
-    printf("\n");
 }
 
 
 void* pool_get_element(void* pools, pool_type_e pool_type)
 {
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
-    printf("pool_get_element - pools = %X \n", pools);
-    printf("pool_get_element - pool  = %X \n", pool);
 
     node_t *node = list_pop_back(&pool->free_list);
-    printf("pool_get_element - node  = %X \n", node);
+    void* element;
     if (node == NULL) {
-        return NULL;
+        DEBUG_INFO("Pool have no more free %s.", "node");
+        element = NULL;
     } else {
         list_push_back(&pool->busy_list, node);
-        return node->usr_data;
+        element = node->usr_data;
     }
+
+    return element;
 }
 
-int pool_free_element(void *pools, pool_type_e pool_type, void* element)
+return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
 {
     if (element == NULL) {
-        printf("ERROR: pool_free_element but element is NULL.\n", pools);
+        DEBUG_ERROR("%s could not be NULL.", "element");
         return ERR;
     }
 
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
-    printf("pool_free_element - pools = %X \n", pools);
-    printf("pool_free_element - pool  = %X \n", pool);
 
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t));
-    printf("pool_free_element - element  = %X \n", element);
-    printf("pool_free_element - element_user_data  = %X \n", element_user_data);
     if (element_user_data == NULL) {
-        printf("ERROR: element address get a NULL element_user_data, file: %s, line: %d, function: %s\n",
-               __FILE__,
-               __LINE__,
-               __FUNCTION__);
+        DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
         return ERR;
     } else if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
-        printf("pool_free_element check_value wrong!!!");
+        DEBUG_ERROR("Element is a invalid to free, check_value = %d.", element_user_data->check_value);
         return ERR;
     }
 
     node_t* node = element_user_data->to_node;
     if (node == NULL) {
-        printf("ERROR: cannot find the node of element address, file: %s, line: %d, function: %s\n",
-               __FILE__,
-               __LINE__,
-               __FUNCTION__);
+        DEBUG_ERROR("Can't find the %s of element address", "node");
         return ERR;
     }
 
@@ -209,10 +192,10 @@ void** pool_get_key_address_by_element_address(void* pools, pool_type_e pool_typ
 
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t)); // TODO
     if (element_user_data == NULL) {
-        printf("*** pool_free_element element_user_data == NULL.\n");
+        DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
         return NULL;
     } else if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
-        printf("pool_get_key_address_by_element_address check_value wrong!!!");
+        DEBUG_ERROR("Element is a invalid to get key address, check_value = %d.", element_user_data->check_value);
         return NULL;
     }
 

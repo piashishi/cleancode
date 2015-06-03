@@ -20,6 +20,11 @@ typedef  uint32_t libcache_scale_t;
 #define TRUE 1
 #define FALSE 0 
 
+typedef enum return_t {
+    OK,
+    ERR
+} return_t;
+
 typedef enum
 {
     LIBCACHE_EQU = 0,

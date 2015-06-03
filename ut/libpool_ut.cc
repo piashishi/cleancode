@@ -57,7 +57,7 @@ TEST(libpool_ut_get_element)
     entry = pool_get_element(pools, POOL_TYPE_DATA);
     CHECK_EQUAL(entry == (void* )NULL, TRUE);
 
-    int ret;
+    return_t ret;
     for (i = 0; i < entry_count; i++) {
         ret = pool_free_element(pools, POOL_TYPE_DATA, entry_stack[i]);
         CHECK_EQUAL(ret, OK);

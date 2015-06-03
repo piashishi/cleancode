@@ -20,10 +20,6 @@ typedef struct element_pool_t {
     int element_acount;
 } element_pool_t;
 
-typedef enum return_t {
-    OK, ERR
-} return_t;
-
 typedef struct element_usr_data_t{
     int check_value;
     void* key;
@@ -81,7 +77,7 @@ void* pool_get_element(void* pools, pool_type_e pool_type);
  * @param [in] element  - element address
  * @return -  OK / ERR
  */
-int pool_free_element(void* pools, pool_type_e pool_type, void* element);
+return_t pool_free_element(void* pools, pool_type_e pool_type, void* element);
 
 /**
  * @fn pool_get_key_by_element_address
