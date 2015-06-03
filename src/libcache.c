@@ -183,10 +183,21 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
              memcpy(element_address, src_entry, libcache_ptr->entry_size);
         }
 
+        libcache_node_usr_data_t* libcache_node_usr_data;
+        node_t* libcache_node;
+        if (hash_get_count(libcache_ptr->hash_table) == libcache_ptr->max_entry_number) {
+            libcache_node = list_pop_back(libcache_ptr->list);
+
+            libcache_node_usr_data = (libcache_node_usr_data_t*) (libcache_node->usr_data);
+            node_t* hash_node = libcache_node_usr_data->hash_node_ptr;
+            hash_del(libcache_ptr->hash_table, key, hash_node);
+        } else {
+            libcache_node = (node_t*) malloc(sizeof(node_t));
+            libcache_node_usr_data = (libcache_node_usr_data_t*) malloc(sizeof(libcache_node_usr_data_t));
+            libcache_node->usr_data = (void*) libcache_node_usr_data;
+        }
+
         // Note: add node into list
-        node_t* libcache_node = (node_t*)malloc(sizeof(node_t));
-        libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)malloc(sizeof(libcache_node_usr_data_t));
-        libcache_node->usr_data = (void*)libcache_node_usr_data;
         libcache_node_usr_data->pool_element_ptr = element_address;
         libcache_node_usr_data->lock_counter = 0;
         list_push_front(libcache_ptr->list, libcache_node);
@@ -200,7 +211,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         }
 
         return_value = element_address;
-    } while(0);
+    } while (0);
 
     return return_value;
 }
