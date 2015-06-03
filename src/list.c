@@ -5,6 +5,7 @@
  *      Author: liyozhao
  */
 
+#include <stdio.h>
 #include "list.h"
 #include "libcache_def.h"
 
@@ -26,6 +27,7 @@
 void list_init(list_t *list)
 {
     if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
         return;
     }
 
@@ -94,6 +96,7 @@ node_t* list_back(list_t *list)
 void list_push_front(list_t *list, node_t *node)
 {
     if (NULL == list || NULL == node) {
+        DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return;
     }
 
@@ -127,6 +130,7 @@ void list_push_front(list_t *list, node_t *node)
 void list_push_back(list_t *list, node_t *node)
 {
     if (NULL == list || NULL == node) {
+        DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return;
     }
 
@@ -160,10 +164,12 @@ void list_push_back(list_t *list, node_t *node)
 int list_remove(list_t *list, node_t *node)
 {
     if (NULL == list || NULL == node) {
+        DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return FALSE;
     }
 
     if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
         return FALSE;
     }
 
@@ -203,10 +209,12 @@ int list_remove(list_t *list, node_t *node)
 node_t * list_pop_front(list_t *list)
 {
     if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
         return NULL;
     }
 
     if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
@@ -235,10 +243,12 @@ node_t * list_pop_front(list_t *list)
 node_t * list_pop_back(list_t *list)
 {
     if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
         return NULL;
     }
 
     if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
@@ -268,10 +278,12 @@ node_t * list_pop_back(list_t *list)
 void list_clear(list_t *list, void (*remove_node_cb)(node_t *node))
 {
     if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
         return;
     }
 
     if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
         return;
     }
 
@@ -296,10 +308,12 @@ void list_clear(list_t *list, void (*remove_node_cb)(node_t *node))
 node_t * list_foreach(list_t *list, int (*traverse_node_cb)(node_t *node))
 {
     if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
         return NULL;
     }
 
     if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
@@ -328,10 +342,12 @@ node_t * list_foreach(list_t *list, int (*traverse_node_cb)(node_t *node))
 node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t *node, void* usr_data), void* usr_data)
 {
     if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
         return NULL;
     }
 
     if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
