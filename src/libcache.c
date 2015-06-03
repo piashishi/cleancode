@@ -127,6 +127,7 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
         } else {
             // Note: copy into dst_entry and return NULL, no lock added too
             memcpy(dst_entry, ((libcache_node_usr_data_t*)libcache_node->usr_data)->pool_element_ptr, libcache_ptr->entry_size);
+            return_value = dst_entry;
         }
     } while(0);
 
@@ -325,6 +326,10 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
         return LIBCACHE_FAILURE;
     }
 
+    if (entry == NULL) {
+        DEBUG_ERROR("input parameter %s is null", "entry");
+        return LIBCACHE_FAILURE;
+    }
 
     libcache_ret_t return_value = LIBCACHE_FAILURE;
     void** key_address = pool_get_key_address_by_element_address(libcache_ptr->pool, POOL_TYPE_DATA, entry);

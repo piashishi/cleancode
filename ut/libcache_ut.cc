@@ -41,12 +41,12 @@ TEST_FIXTURE(LibCacheFixture, TestAdd)
     CHECK(*value == entry);
 
     //check add same key/entry
-    int* value2 = (int*)libcache_add(g_cache, &key, &entry);
+    int* value2 = (int*) libcache_add(g_cache, &key, &entry);
     CHECK(value2 == NULL);
 
     //check add NULL entry
     int key3 = 300;
-    int* value3 = (int*)libcache_add(g_cache, &key3, NULL);
+    int* value3 = (int*) libcache_add(g_cache, &key3, NULL);
     CHECK(value3 != NULL);
     *value3 = 3000;
 
@@ -56,13 +56,14 @@ TEST_FIXTURE(LibCacheFixture, TestAdd)
     CHECK(value4 == NULL);
 
     //check unlock
-    libcache_ret_t ret = libcache_unlock_entry(g_cache, value2);
+    libcache_ret_t ret = libcache_unlock_entry(g_cache, value3);
     CHECK(ret == LIBCACHE_SUCCESS);
 
     //check look up
     int* value5 = (int*)libcache_lookup(g_cache, &key3, &entry4);
-    CHECK(entry4 == 300);
-    CHECK(value3 == value5);
+    CHECK(entry4 == 3000);
+    CHECK(value3 != value5);
+    CHECK(*value3 == *value5);
 
 
     ret = libcache_clean(g_cache);
