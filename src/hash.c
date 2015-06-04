@@ -39,7 +39,7 @@ static int find_node(node_t* node, void* usr_data)
 {
     to_find_node_t* to_find_node = (to_find_node_t*)usr_data;
     if (node == NULL) {
-        DEBUG_ERROR("input parameter %s is null.", "node");
+        DEBUG_ERROR("input parameter node is null.");
         return -1;
     }
     hash_data_t* hd = (hash_data_t*)node->usr_data;
