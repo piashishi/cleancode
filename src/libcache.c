@@ -180,6 +180,9 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
             DEBUG_ERROR("input parameter %s is null, the pool is full.", "element_address");
             break;
         }
+        if (NULL != src_entry) {
+             memcpy(element_address, src_entry, libcache_ptr->entry_size);
+        }
 
         libcache_node_usr_data_t* libcache_node_usr_data;
         node_t* libcache_node;
