@@ -46,6 +46,11 @@ void* libcache_create(
         LIBCACHE_CMP_KEY* cmp_key,
         LIBCACHE_KEY_TO_NUMBER* key_to_number)
 {
+    if (allocate_memory == NULL || free_memory == NULL) {
+        DEBUG_ERROR("argument %s and %s can not be NULL.", "allocate_memory", "free_memory");
+        return NULL;
+    }
+
     size_t pool_element_size = entry_size + key_size;
     while (0 != pool_element_size % 4) {
         pool_element_size++;
@@ -56,7 +61,7 @@ void* libcache_create(
     pool_attr_t pool_attr[] = {{entry_size, max_entry_number}};
     size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
 
-    void *large_memory = malloc(large_mem_size);
+    void *large_memory = allocate_memory(large_mem_size);
     libcache->pool = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
     // libcache->pool = pool_init(entry_size * max_entry_number, allocate_memory, free_memory);
     // return_t init_result = pool_init_element_pool(libcache->pool, entry_size, max_entry_number);

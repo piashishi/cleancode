@@ -25,7 +25,7 @@ struct LibCacheFixture {
     void* g_cache;
     LibCacheFixture()
     {
-        g_cache = libcache_create(100, sizeof(int), sizeof(int), NULL, NULL, NULL, test_key_com, test_key_to_int);
+        g_cache = libcache_create(100, sizeof(int), sizeof(int), malloc, free, NULL, test_key_com, test_key_to_int);
     }
     ~LibCacheFixture()
     {
