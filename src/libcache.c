@@ -423,7 +423,11 @@ libcache_ret_t libcache_clean(void * libcache)
 
         // TODO: void hash_clean(void* hash)
 
-        // TODO: void pool_clean(element_pool_t *pool)
+        return_t ret = pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);
+        if (ret != OK) {
+            DEBUG_ERROR("pool_free_element failed, ret = %d", ret);
+            return LIBCACHE_FAILURE;
+        }
 
         // Note: remove node of list
         free(libcache_node_usr_data);
