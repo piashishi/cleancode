@@ -7,5 +7,5 @@ libcache: libcache.o
 	@rm *.o
 	@echo "Compile Done!"
 libcache.o: 
-	 gcc -m64 -std=c99 -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual \
+	 gcc -std=c99 -pedantic -Wall -Wshadow -Wpointer-arith -Wcast-qual \
 	 -Wstrict-prototypes -Wmissing-prototypes -c ${SRC} -I${INC}
