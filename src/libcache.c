@@ -189,8 +189,8 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
             libcache_node = list_pop_back(libcache_ptr->list);
 
             libcache_node_usr_data = (libcache_node_usr_data_t*) (libcache_node->usr_data);
-            node_t* hash_node = libcache_node_usr_data->hash_node_ptr;
-            hash_del(libcache_ptr->hash_table, key, hash_node);
+            node_t* temp_hash_node = libcache_node_usr_data->hash_node_ptr;
+            hash_del(libcache_ptr->hash_table, key, temp_hash_node);
         } else {
             libcache_node = (node_t*) malloc(sizeof(node_t));
             libcache_node_usr_data = (libcache_node_usr_data_t*) malloc(sizeof(libcache_node_usr_data_t));
@@ -256,7 +256,7 @@ libcache_ret_t  libcache_delete_by_key(void * libcache, const void* key)
          }
 
         // Note: delete node from hash
-        int value = hash_del(libcache_ptr->hash_table, key, libcache_node_usr_data->hash_node_ptr);
+        (void) hash_del(libcache_ptr->hash_table, key, libcache_node_usr_data->hash_node_ptr);
 
         // Note: delete node from pool
         pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);
@@ -368,9 +368,9 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
  *  @return
  *         the number
  */
-libcache_scale_t libcache_get_max_entry_number(const void * libcache)
+libcache_scale_t libcache_get_max_entry_number(void * libcache)
 {
-    libcache_t* libcache_ptr = (libcache_t*)libcache;
+    libcache_t* libcache_ptr = (libcache_t*) libcache;
     if (NULL == libcache_ptr) {
         DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
@@ -385,9 +385,9 @@ libcache_scale_t libcache_get_max_entry_number(const void * libcache)
  *  @return
  *         the number
  */
-libcache_scale_t libcache_get_entry_number(const void * libcache)
+libcache_scale_t libcache_get_entry_number(void * libcache)
 {
-    libcache_t* libcache_ptr = (libcache_t*)libcache;
+    libcache_t* libcache_ptr = (libcache_t*) libcache;
     if (NULL == libcache_ptr) {
         DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;

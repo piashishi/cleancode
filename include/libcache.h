@@ -101,7 +101,7 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry);
  *  @return
  *         the number
  */
-libcache_scale_t libcache_get_max_entry_number(const void * libcache);
+libcache_scale_t libcache_get_max_entry_number(void * libcache);
 
 /*
  *  @brief libcache_get_entry_number         gets the number of entries this cache stores.
@@ -110,7 +110,7 @@ libcache_scale_t libcache_get_max_entry_number(const void * libcache);
  *  @return
  *         the number
  */
-libcache_scale_t libcache_get_entry_number(const void * libcache);
+libcache_scale_t libcache_get_entry_number(void * libcache);
 
 /*
  *  @brief libcache_clean         attempts to delete all entries.

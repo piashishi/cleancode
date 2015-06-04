@@ -16,27 +16,27 @@ do {                           \
 
 typedef int pools_count_t ;
 
-size_t pool_caculate_pool_head_length()
+static size_t pool_caculate_pool_head_length(void)
 {
     return sizeof(element_pool_t);
 }
 
-size_t pool_caculate_nodes_length(int entry_acount)
+static size_t pool_caculate_nodes_length(int entry_acount)
 {
     return sizeof(node_t) * entry_acount;
 }
 
-size_t pool_caculate_element_length(size_t entry_size)
+static size_t pool_caculate_element_length(size_t entry_size)
 {
     ALIGN(entry_size);
     return sizeof(element_usr_data_t) + entry_size;
 }
-size_t pool_caculate_elements_length(size_t entry_size, int entry_acount)
+static size_t pool_caculate_elements_length(size_t entry_size, int entry_acount)
 {
     return pool_caculate_element_length(entry_size) * entry_acount;
 }
 
-element_pool_t* get_pool_ctrl(void* pools, int index)
+static element_pool_t* get_pool_ctrl(void* pools, int index)
 {
     pools_count_t* pool_count =(pools_count_t*)pools;
     if (*pool_count < index) {
@@ -48,7 +48,7 @@ element_pool_t* get_pool_ctrl(void* pools, int index)
     return pools_pointer[index];
 }
 
-size_t pool_caculate_length(size_t entry_size, int entry_acount)
+static size_t pool_caculate_length(size_t entry_size, int entry_acount)
 {
     size_t pool_head_length = pool_caculate_pool_head_length();
     size_t nodes_length = pool_caculate_nodes_length(entry_acount);
@@ -69,13 +69,13 @@ size_t pool_caculate_total_length(pool_type_e pool_acount, pool_attr_t pool_attr
 
     return pools_head_size + pools_length;
 }
-node_t* pool_get_node_addr(element_pool_t* pool, int j)
+static node_t* pool_get_node_addr(element_pool_t* pool, int j)
 {
     node_t* nodes_start_mem = (node_t*)((char*) pool + pool_caculate_pool_head_length());
     return nodes_start_mem + j;
 }
 
-element_usr_data_t* pool_get_element_addr(element_pool_t* pool, int j)
+static element_usr_data_t* pool_get_element_addr(element_pool_t* pool, int j)
 {
     element_usr_data_t* elements_start_mem = (element_usr_data_t*) ((char*) pool + pool_caculate_pool_head_length()
             + pool_caculate_nodes_length(pool->element_acount));
@@ -154,7 +154,7 @@ void* pool_get_element(void* pools, pool_type_e pool_type)
 return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
 {
     if (element == NULL) {
-        DEBUG_ERROR("%s could not be NULL.", "element");
+        DEBUG_ERROR("%s could not be NULL.", "Element");
         return ERR;
     }
 
@@ -188,7 +188,10 @@ return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
 
 void** pool_get_key_address_by_element_address(void* pools, pool_type_e pool_type, void* element)
 {
-    element_pool_t *pool = get_pool_ctrl(pools, pool_type);
+    if (element == NULL) {
+        DEBUG_ERROR("%s could not be NULL.", "Element");
+        return NULL;
+    }
 
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t)); // TODO
     if (element_user_data == NULL) {
