@@ -192,13 +192,13 @@ void* hash_find(void* hash_table, const void* key)
     }
 }
 
-int hash_get_count(void* hash_table)
+int hash_get_count(const void* hash_table)
 {
     if (hash_table == NULL) {
         DEBUG_ERROR("input parameter %s is null.", "hash_table");
         return -1;
     }
-    hash_t* hash = (hash_t*) hash_table;
+    const hash_t* hash = (const hash_t*) hash_table;
     return hash->entry_count;
 }
 

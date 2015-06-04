@@ -368,9 +368,9 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
  *  @return
  *         the number
  */
-libcache_scale_t libcache_get_max_entry_number(void * libcache)
+libcache_scale_t libcache_get_max_entry_number(const void * libcache)
 {
-    libcache_t* libcache_ptr = (libcache_t*) libcache;
+    const libcache_t* libcache_ptr = (const libcache_t*)libcache;
     if (NULL == libcache_ptr) {
         DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;
@@ -385,9 +385,9 @@ libcache_scale_t libcache_get_max_entry_number(void * libcache)
  *  @return
  *         the number
  */
-libcache_scale_t libcache_get_entry_number(void * libcache)
+libcache_scale_t libcache_get_entry_number(const void * libcache)
 {
-    libcache_t* libcache_ptr = (libcache_t*) libcache;
+    const libcache_t* libcache_ptr = (const libcache_t*)libcache;
     if (NULL == libcache_ptr) {
         DEBUG_ERROR("input parameter %s is null", "libcache");
         return LIBCACHE_FAILURE;

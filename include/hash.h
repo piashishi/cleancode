@@ -88,7 +88,7 @@ void* hash_find(void* hash, const void* key);
  * @return -1 when parameter is NULL
  * @return hash entry count
  */
-int hash_get_count(void* hash);
+int hash_get_count(const void* hash);
 
 /**
  * @fn hash_free
