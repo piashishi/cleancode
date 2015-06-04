@@ -21,6 +21,8 @@ typedef struct libcache_t
     size_t entry_size;
     size_t key_size;
     libcache_scale_t max_entry_number;
+    LIBCACHE_FREE_MEMORY* free_memory;
+    LIBCACHE_FREE_ENTRY* free_entry;
 }libcache_t;
 
 /*
@@ -71,9 +73,11 @@ void* libcache_create(
     libcache->list = (list_t*)malloc(sizeof(list_t));
     list_init(libcache->list);
 
-    libcache->max_entry_number = max_entry_number;
     libcache->entry_size = entry_size;
     libcache->key_size = key_size;
+    libcache->max_entry_number = max_entry_number;
+    libcache->free_memory = free_memory;
+    libcache->free_entry = free_entry;
 
     if (NULL == libcache->pool || NULL == libcache->hash_table) {
         hash_free(libcache->hash_table);
@@ -317,7 +321,7 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
              break;
          }
 
-        hash_data_t* hash_data = libcache_node_usr_data->hash_node_ptr->usr_data;
+        hash_data_t* hash_data = (hash_data_t*) (libcache_node_usr_data->hash_node_ptr->usr_data);
         return_value = libcache_delete_by_key(libcache_ptr->hash_table, hash_data->key);
     } while(0);
 
@@ -458,6 +462,11 @@ libcache_ret_t libcache_destroy(void * libcache)
     while (NULL != (libcache_node = list_pop_front(libcache_ptr->list))) {
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
 
+        if (libcache_ptr->free_entry != NULL) {
+            hash_data_t* hash_data = (hash_data_t*) (libcache_node_usr_data->hash_node_ptr->usr_data);
+            libcache_ptr->free_entry(hash_data->key, libcache_node_usr_data->pool_element_ptr);
+        }
+
         // Note: remove node of list
         free(libcache_node_usr_data);
         free(libcache_node);
@@ -465,7 +474,7 @@ libcache_ret_t libcache_destroy(void * libcache)
     }
     // TODO: void hash_destroy(void* hash)
 
-    // TODO: void pool_destroy(element_pool_t *pool)
+    libcache_ptr->free_memory(libcache_ptr->pool);
 
     hash_free(libcache_ptr->hash_table);
     free(libcache_ptr->list);
