@@ -181,13 +181,6 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
             break;
         }
 
-        void** key_address = pool_get_key_address_by_element_address(libcache_ptr->pool, POOL_TYPE_DATA, element_address);
-        *key_address = (void*)malloc(libcache_ptr->key_size);
-        memcpy(*key_address, key, libcache_ptr->key_size);
-        if (NULL != src_entry) {
-             memcpy(element_address, src_entry, libcache_ptr->entry_size);
-        }
-
         libcache_node_usr_data_t* libcache_node_usr_data;
         node_t* libcache_node;
         if (hash_get_count(libcache_ptr->hash_table) == libcache_ptr->max_entry_number) {
@@ -206,6 +199,12 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         libcache_node_usr_data->pool_element_ptr = element_address;
         libcache_node_usr_data->lock_counter = 0;
         list_push_front(libcache_ptr->list, libcache_node);
+
+        // Note: add node into pool element
+        return_t ret = pool_set_reserved_pointer(element_address, (void*)libcache_node);
+        if (ret != OK) {
+            break;
+        }
 
         // Note: add node into hash
         libcache_node_usr_data->hash_node_ptr = hash_add(libcache_ptr->hash_table, key, libcache_node);
@@ -298,27 +297,25 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
     }
 
     libcache_ret_t return_value = LIBCACHE_FAILURE;
-    void** key_address = pool_get_key_address_by_element_address(libcache_ptr->pool, POOL_TYPE_DATA, entry);
+
 
     do {
         // Note: judge whether entry is existed in cache
-        if (NULL == key_address || NULL == *key_address) {
+        node_t* libcache_node = pool_get_reserved_pointer(entry);
+        if (libcache_node == NULL) {
             return_value = LIBCACHE_NOT_FOUND;
             break;
         }
 
-        void *key = *key_address;
-
         // Note: judge whether entry is locked
-        node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, key);
-        node_t* libcache_node = (node_t*)((hash_data_t*)hash_node->usr_data)->cache_node_ptr;
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
          if (libcache_node_usr_data->lock_counter > 0) {
              return_value = LIBCACHE_LOCKED;
              break;
          }
 
-        return_value = libcache_delete_by_key(libcache_ptr->hash_table, key);
+        hash_data_t* hash_data = libcache_node_usr_data->hash_node_ptr->usr_data;
+        return_value = libcache_delete_by_key(libcache_ptr->hash_table, hash_data->key);
     } while(0);
 
     return return_value;
@@ -348,14 +345,13 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
     }
 
     libcache_ret_t return_value = LIBCACHE_FAILURE;
-    void** key_address = pool_get_key_address_by_element_address(libcache_ptr->pool, POOL_TYPE_DATA, entry);
-    node_t* hash_node = (node_t*)hash_find(libcache_ptr->hash_table, *key_address);
 
-    if (NULL == hash_node) {
+    node_t* libcache_node = pool_get_reserved_pointer(entry);
+
+    if (NULL == libcache_node) {
         return_value = LIBCACHE_NOT_FOUND;
     } else {
         // Note: unlock entry
-        node_t* libcache_node = (node_t*)((hash_data_t*)hash_node->usr_data)->cache_node_ptr;
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
         if (libcache_node_usr_data->lock_counter > 0) {
             libcache_node_usr_data->lock_counter--;

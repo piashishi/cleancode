@@ -118,7 +118,7 @@ void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_aco
             element_usr_data_t* elements_addr = pool_get_element_addr(pool, j);
 
             elements_addr->check_value = MAGIC_CHECK_VALUE;
-            elements_addr->key = NULL;
+            elements_addr->reserved_pointer = NULL;
             elements_addr->to_node = node;
 
             node->usr_data = (void*)(elements_addr + 1); //
@@ -151,23 +151,38 @@ void* pool_get_element(void* pools, pool_type_e pool_type)
     return element;
 }
 
-return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
+static void* pool_get_element_head(void* element)
 {
     if (element == NULL) {
         DEBUG_ERROR("%s could not be NULL.", "Element");
-        return ERR;
+        return NULL;
     }
 
-    element_pool_t *pool = get_pool_ctrl(pools, pool_type);
+    void* element_head;
 
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t));
     if (element_user_data == NULL) {
         DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
-        return ERR;
+        element_head = NULL;
     } else if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
         DEBUG_ERROR("Element is a invalid to free, check_value = %d.", element_user_data->check_value);
+        element_head = NULL;
+    } else {
+        element_head = element_user_data;
+    }
+
+    return element_head;
+}
+
+return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
+{
+    element_usr_data_t *element_user_data = pool_get_element_head(element);
+    if (element_user_data == NULL) {
+        DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
         return ERR;
     }
+
+    element_user_data->reserved_pointer = NULL;
 
     node_t* node = element_user_data->to_node;
     if (node == NULL) {
@@ -175,32 +190,39 @@ return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
         return ERR;
     }
 
-    if (((element_usr_data_t*) node->usr_data)->key != NULL) {
-        free(((element_usr_data_t*) node->usr_data)->key);
-    }
-    ((element_usr_data_t*) node->usr_data)->key = NULL;
-
+    element_pool_t *pool = get_pool_ctrl(pools, pool_type);
     list_remove(&pool->busy_list, node);
     list_push_back(&pool->free_list, node);
 
     return OK;
 }
 
-void** pool_get_key_address_by_element_address(void* pools, pool_type_e pool_type, void* element)
+return_t pool_set_reserved_pointer(void* element, void* to_set)
 {
-    if (element == NULL) {
-        DEBUG_ERROR("%s could not be NULL.", "Element");
-        return NULL;
-    }
-
-    element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t)); // TODO
+    return_t ret;
+    element_usr_data_t *element_user_data = (element_usr_data_t *) pool_get_element_head(element);
     if (element_user_data == NULL) {
-        DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
-        return NULL;
-    } else if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
-        DEBUG_ERROR("Element is a invalid to get key address, check_value = %d.", element_user_data->check_value);
-        return NULL;
+        DEBUG_ERROR("%s is NULL.", "element_user_data");
+        ret = ERR;
+    } else {
+        element_user_data->reserved_pointer = to_set;
+        ret = OK;
     }
 
-    return &element_user_data->key;
+    return ret;
 }
+
+void* pool_get_reserved_pointer(void* element)
+{
+    void *reserved_pointer;
+    element_usr_data_t *element_user_data = pool_get_element_head(element);
+    if (element_user_data == NULL) {
+        DEBUG_ERROR("%s is NULL.", "element_user_data");
+        reserved_pointer = NULL;
+    } else {
+        reserved_pointer = element_user_data->reserved_pointer;
+    }
+
+    return reserved_pointer;
+}
+

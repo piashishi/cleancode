@@ -22,7 +22,7 @@ typedef struct element_pool_t {
 
 typedef struct element_usr_data_t{
     int check_value;
-    void* key;
+    void* reserved_pointer;
     node_t* to_node;
 }element_usr_data_t;
 
@@ -87,7 +87,8 @@ return_t pool_free_element(void* pools, pool_type_e pool_type, void* element);
  * @param [in] element  - element address
  * @return - a point to element memory(NULL: not found or parameter error)
  */
-void** pool_get_key_address_by_element_address(void* pools, pool_type_e pool_type, void* element);
+return_t pool_set_reserved_pointer(void* element, void* to_set);
+void* pool_get_reserved_pointer(void* element);
 
 #ifdef __cplusplus
 }
