@@ -138,9 +138,24 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
             memcpy(dst_entry, ((libcache_node_usr_data_t*)libcache_node->usr_data)->pool_element_ptr, libcache_ptr->entry_size);
             return_value = dst_entry;
         }
+
+        // Note: put the newest found node in front of list
+        list_remove(libcache_ptr->list, libcache_node);
+        list_push_front(libcache_ptr->list, libcache_node);
+
     } while(0);
 
     return return_value;
+}
+
+/*
+ *  @brief libcache_get_unlock_node  find unlocked node in list.
+ *
+ *  @param node             node in list.
+ *  @return 0: traversing over; 1: continue traversing
+ */
+static int libcache_get_unlock_node(node_t *node) {
+    return (((libcache_node_usr_data_t*)node->usr_data)->lock_counter) ? 1 : 0;
 }
 
 /*
@@ -184,12 +199,11 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         // Note: if cache pool is full, check unlocked node in libcache list back
         if (libcache_ptr->max_entry_number <= libcache_ptr->list->total_nodes) {
             // Note: if no unlocked node in libcache list, return directly
-            node_t* libcache_list_last_node = list_back(libcache_ptr->list);
-            if (((libcache_node_usr_data_t*)libcache_list_last_node->usr_data)->lock_counter) {
+            libcache_list_unlock_node = list_foreach(libcache_ptr->list, libcache_get_unlock_node);
+            if (NULL == libcache_list_unlock_node) {
                 DEBUG_INFO("the cache is full, can't add data anymore");
                 break;
             } else { // Note: if have unlocked node in libcache list
-                libcache_list_unlock_node = list_pop_back(libcache_ptr->list);
                 hash_del(libcache_ptr->hash_table, key,
                         ((libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data)->hash_node_ptr);
             }
@@ -202,7 +216,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         // Note: update node data
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data;
         if (is_node_new_created) {
-            libcache_node_usr_data->pool_element_ptr = (element_usr_data_t*)pool_get_element(libcache_ptr->pool, POOL_TYPE_DATA);;
+            libcache_node_usr_data->pool_element_ptr = pool_get_element(libcache_ptr->pool, POOL_TYPE_DATA);
         }
 
         if (NULL != src_entry) {
@@ -214,9 +228,17 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         list_push_front(libcache_ptr->list, libcache_list_unlock_node);
 
         // Note: add node into pool element
-        return_t ret = pool_set_reserved_pointer(libcache_node_usr_data->pool_element_ptr, (void*)libcache_list_unlock_node);
-        if (ret != OK) {
-            break;
+        if (is_node_new_created) {
+            if (OK != pool_set_reserved_pointer(libcache_node_usr_data->pool_element_ptr, (void*)libcache_list_unlock_node)) {
+                DEBUG_ERROR("add data into cache failed");
+                // free resource
+                list_pop_front(libcache_ptr->list);
+                pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);
+
+                free(libcache_list_unlock_node->usr_data);
+                free(libcache_list_unlock_node);
+                break;
+            }
         }
 
         // Note: add node into hash
