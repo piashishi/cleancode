@@ -8,10 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "hash.h"
 
 #define HASH_BIT 16
+
+#define MAX_BUCKETS 0xffffffff
 
 #define GOLDEN_RATIO_PRIME_32 0x9e370001UL
 
@@ -19,6 +22,24 @@ typedef struct to_find_node_t {
     const void* key;
     LIBCACHE_CMP_KEY* kcmp;
 } to_find_node_t;
+
+u32 get_bits(u32 val)
+{
+    u32 count = 1;
+    while (val >>= 1 != 0) {
+        count++;
+    }
+    return count;
+}
+
+u32 get_bucket_number(u32 val)
+{
+    if (val >= 32) {
+        return MAX_BUCKETS;
+    } else {
+        return pow(2, val) - 1;
+    }
+}
 
 static inline u32 hash_32(u32 val, u32 bits)
 {
@@ -30,7 +51,7 @@ static u32 key_to_hash(hash_t* hash, const void* key)
 {
 
     u32 value = hash->k2num(key);
-    return hash_32(value, HASH_BIT);
+    return hash_32(value, hash->bits);
 }
 
 static int find_node(node_t* node, void* usr_data)
@@ -61,21 +82,24 @@ static void free_node(node_t* node)
     return;
 }
 
-void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num)
+void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num)
 {
     hash_t* hash = (hash_t*) malloc(sizeof(hash_t));
     if (hash == NULL) {
         DEBUG_ERROR("%s init failed: ouf of memory!", "hash");
         return NULL;
     }
+    hash->bits = get_bits(max_entry);
+    hash->buckets_count = get_bucket_number(hash->bits);
 
+    hash->bucket_list = (bucket_t*) malloc(hash->buckets_count * sizeof(bucket_t));
     hash->entry_count = 0;
     hash->key_size = key_size;
     hash->kcmp = key_cmp;
     hash->k2num = key_to_num;
 
     int i = 0;
-    while (i <= MAX_BUCKETS) {
+    while (i <= hash->buckets_count) {
         hash->bucket_list[i].list_count = 0;
         hash->bucket_list[i].list = NULL;
         i++;
@@ -93,7 +117,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
     }
     hash_t* hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code > MAX_BUCKETS) {
+    if (hash_code > hash->buckets_count) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
@@ -137,7 +161,7 @@ int hash_del(void* hash_table, const void* key, void* hash_node)
     hash_t* hash = (hash_t*) hash_table;
 
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code > MAX_BUCKETS) {
+    if (hash_code > hash->buckets_count) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return -1;
     }
@@ -167,7 +191,7 @@ void* hash_find(void* hash_table, const void* key)
 
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code > MAX_BUCKETS) {
+    if (hash_code > hash->buckets_count) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
@@ -206,7 +230,7 @@ static void hash_release(void* hash_table, int is_destroy)
     }
     hash_t* hash = (hash_t*) hash_table;
     int i = 0;
-    for (i = 0; i <= MAX_BUCKETS; i++) {
+    for (i = 0; i <= hash->buckets_count; i++) {
         bucket_t* bucket = &(hash->bucket_list[i]);
         if (bucket->list != NULL) {
             list_clear(bucket->list, free_node);
@@ -216,6 +240,7 @@ static void hash_release(void* hash_table, int is_destroy)
         }
     }
     if (is_destroy) {
+        free(hash->bucket_list);
         free(hash);
     } else {
         hash->entry_count = 0;

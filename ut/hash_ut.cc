@@ -9,11 +9,10 @@ extern "C" {
 #include "hash.h"
 #include "libcache_def.h"
 
-typedef struct test_data_t
-{
+typedef struct test_data_t {
     void* key;
     void* entry;
-}test_data_t;
+} test_data_t;
 
 uint32_t test_key_to_int(const void* key)
 {
@@ -42,7 +41,7 @@ struct HashFixture {
 
     HashFixture()
     {
-        g_hash = (hash_t*)hash_init(sizeof(int), test_key_com, test_key_to_int);
+        g_hash = (hash_t*) hash_init(655350, sizeof(int), test_key_com, test_key_to_int);
         list = (list_t*) malloc(sizeof(list_t));
         list_init(list);
     }
@@ -63,8 +62,8 @@ struct HashFixture {
         int i = 0;
         for (i = 0; i < 655350; i++) {
             list_entry = (node_t*) malloc(sizeof(node_t));
-            list_entry->usr_data = (test_data_t*)malloc(sizeof(test_data_t));
-            test_data_t* td = (test_data_t*)list_entry->usr_data;
+            list_entry->usr_data = (test_data_t*) malloc(sizeof(test_data_t));
+            test_data_t* td = (test_data_t*) list_entry->usr_data;
             td->key = (int*) malloc(sizeof(int));
             memcpy(td->key, &i, sizeof(int));
 
@@ -91,7 +90,7 @@ TEST_FIXTURE(HashFixture, TestAddHash)
 
     int i = 0;
     uint32_t sum = 0;
-    for (i = 0; i <= MAX_BUCKETS; i++) {
+    for (i = 0; i <= g_hash->buckets_count; i++) {
         bucket_t bucket = g_hash->bucket_list[i];
         if (bucket.list != NULL) {
             sum += bucket.list_count;
@@ -102,7 +101,7 @@ TEST_FIXTURE(HashFixture, TestAddHash)
     hash_free(g_hash);
     CHECK(g_hash->entry_count == 0);
     CHECK(g_hash->bucket_list[0].list == NULL);
-    CHECK(g_hash->bucket_list[0].list_count  == 0);
+    CHECK(g_hash->bucket_list[0].list_count == 0);
 }
 
 TEST_FIXTURE(HashFixture, TestFindHash)
@@ -114,9 +113,9 @@ TEST_FIXTURE(HashFixture, TestFindHash)
     node_t* node = (node_t*) hash_find(g_hash, &value);
     CHECK(node != NULL);
 
-    int* p1 = (int*) (((test_data_t*)node->usr_data)->key);
-    node_t* pp = (node_t*)(((test_data_t*)node->usr_data)->entry);
-    hash_data_t* hd = (hash_data_t*)pp->usr_data;
+    int* p1 = (int*) (((test_data_t*) node->usr_data)->key);
+    node_t* pp = (node_t*) (((test_data_t*) node->usr_data)->entry);
+    hash_data_t* hd = (hash_data_t*) pp->usr_data;
     int* p2 = (int*) hd->key;
 
     CHECK(*p1 == 2000);
@@ -140,7 +139,7 @@ TEST_FIXTURE(HashFixture, TestDelHash)
 
     //get the first elements
     node_t* node2 = list_pop_front(list);
-    test_data_t* td = (test_data_t*)node2->usr_data;
+    test_data_t* td = (test_data_t*) node2->usr_data;
 
     ret = hash_del(g_hash, &value, td->entry);
     CHECK(ret == 0);
@@ -150,7 +149,7 @@ TEST_FIXTURE(HashFixture, TestDelHash)
 
     int count = hash_get_count(g_hash);
     CHECK(count == 655349);
-    
+
     hash_destroy(g_hash);
 }
 

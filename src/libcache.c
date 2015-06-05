@@ -69,7 +69,7 @@ void* libcache_create(
     // libcache->pool = pool_init(entry_size * max_entry_number, allocate_memory, free_memory);
     // return_t init_result = pool_init_element_pool(libcache->pool, entry_size, max_entry_number);
 
-    libcache->hash_table = hash_init(key_size, cmp_key, key_to_number);
+    libcache->hash_table = hash_init(max_entry_number, key_size, cmp_key, key_to_number);
 
     libcache->list = (list_t*)malloc(sizeof(list_t));
     list_init(libcache->list);

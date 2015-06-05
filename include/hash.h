@@ -11,8 +11,6 @@
 #include "list.h"
 #include "libcache_def.h"
 
-#define MAX_BUCKETS 65535
-
 #define u32  unsigned int
 
 typedef struct hash_data_t {
@@ -26,24 +24,27 @@ typedef struct bucket_t {
 } bucket_t;
 
 typedef struct hash_t {
+    int bits;      //hash key bits
+    int buckets_count;
     int entry_count;
-    bucket_t bucket_list[MAX_BUCKETS+1];
     int key_size;
     LIBCACHE_CMP_KEY* kcmp;
     LIBCACHE_KEY_TO_NUMBER* k2num;
+    bucket_t* bucket_list;
 } hash_t;
 
 /**
  * @fn hash_init
  *
  * @brief create hash table and initialization
+ * @param [in] max_entry - max entry size
  * @param [in] key_size - key length
  * @param [in] key_cmp - callback for compare key value.
  * @param [in] key_to_num - callback for convert key to number
  * @return NULL  - when out of memory.
  * @return pointer to hash table
  */
-void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num);
+void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num);
 
 /**
  * @fn hash_add
