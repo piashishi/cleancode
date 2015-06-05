@@ -331,6 +331,40 @@ node_t * list_foreach(list_t *list, int (*traverse_node_cb)(node_t *node))
 }
 
 /**
+ * @fn list_reverse_foreach
+ *
+ * @brief reverse traverse node in list
+ * @param [in] list - list pointer
+ * @param [in] int (*traverse_node_cb)(node_t *node) - call back function to handle traversed node in list;
+ *             return  - 0: traversing over; 1: continue traversing
+ * @return  node_t * - the node to be found
+ */
+node_t * list_reverse_foreach(list_t *list, int (*traverse_node_cb)(node_t *node))
+{
+    if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
+        return NULL;
+    }
+
+    if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
+        return NULL;
+    }
+
+    node_t *node_to_be_traversed = list->tail_node;
+    while (node_to_be_traversed) {
+        node_t *next_node_to_be_traversed = node_to_be_traversed->previous_node;
+        if (traverse_node_cb) {
+            if (0 == traverse_node_cb(node_to_be_traversed)) {
+                break;
+            }
+        }
+        node_to_be_traversed = next_node_to_be_traversed;
+    }
+    return node_to_be_traversed;
+}
+
+/**
  * @fn list_foreach_with_usr_data
  *
  * @brief traverse node in list

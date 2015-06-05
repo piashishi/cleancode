@@ -15,12 +15,10 @@
 
 #define GOLDEN_RATIO_PRIME_32 0x9e370001UL
 
-typedef struct to_find_node_t
-{
+typedef struct to_find_node_t {
     const void* key;
     LIBCACHE_CMP_KEY* kcmp;
-}to_find_node_t;
-
+} to_find_node_t;
 
 static inline u32 hash_32(u32 val, u32 bits)
 {
@@ -37,12 +35,12 @@ static u32 key_to_hash(hash_t* hash, const void* key)
 
 static int find_node(node_t* node, void* usr_data)
 {
-    to_find_node_t* to_find_node = (to_find_node_t*)usr_data;
+    to_find_node_t* to_find_node = (to_find_node_t*) usr_data;
     if (node == NULL) {
         DEBUG_ERROR("input parameter node is null.");
         return -1;
     }
-    hash_data_t* hd = (hash_data_t*)node->usr_data;
+    hash_data_t* hd = (hash_data_t*) node->usr_data;
     return to_find_node->kcmp(to_find_node->key, hd->key);
 }
 
@@ -50,19 +48,17 @@ static void free_node(node_t* node)
 {
     if (node == NULL) {
         DEBUG_ERROR("input parameter %s is null.", "node");
-        return ;
+        return;
     }
     hash_data_t* hd = (hash_data_t*) node->usr_data;
-    if(hd != NULL)
-    {
-        if(hd->key != NULL)
-        {
+    if (hd != NULL) {
+        if (hd->key != NULL) {
             free(hd->key);
         }
         free(hd);
     }
     free(node);
-    return ;
+    return;
 }
 
 void* hash_init(int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num)
@@ -91,8 +87,8 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
 {
     if (hash_table == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s is null.",
-                (NULL == hash_table) ? "hash_table" : "",
-                (NULL == key) ? "key" : "");
+                    (NULL == hash_table) ? "hash_table" : "",
+                    (NULL == key) ? "key" : "");
         return NULL;
     }
     hash_t* hash = (hash_t*) hash_table;
@@ -108,7 +104,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
         return NULL;
     }
     node->usr_data = (hash_data_t*) malloc(sizeof(hash_data_t));
-    hash_data_t* hd =(hash_data_t*)node->usr_data;
+    hash_data_t* hd = (hash_data_t*) node->usr_data;
     hd->key = malloc(hash->key_size);
     memset(hd->key, 0, hash->key_size);
     memcpy(hd->key, key, hash->key_size);
@@ -133,9 +129,9 @@ int hash_del(void* hash_table, const void* key, void* hash_node)
 {
     if (hash_table == NULL || hash_node == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s %s is null.",
-                (NULL == hash_table) ? "hash_table" : "",
-                (NULL == key) ? "key" : "",
-                (NULL == hash_node) ? "hash_node" : "");
+                    (NULL == hash_table) ? "hash_table" : "",
+                    (NULL == key) ? "key" : "",
+                    (NULL == hash_node) ? "hash_node" : "");
         return -1;
     }
     hash_t* hash = (hash_t*) hash_table;
@@ -164,8 +160,8 @@ void* hash_find(void* hash_table, const void* key)
 {
     if (hash_table == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s is null.",
-                (NULL == hash_table) ? "hash_table" : "",
-                (NULL == key) ? "key" : "");
+                    (NULL == hash_table) ? "hash_table" : "",
+                    (NULL == key) ? "key" : "");
         return NULL;
     }
 
@@ -183,7 +179,7 @@ void* hash_find(void* hash_table, const void* key)
         to_find_node_t to_find_node;
         to_find_node.key = key;
         to_find_node.kcmp = hash->kcmp;
-        node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*)&to_find_node);
+        node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*) &to_find_node);
         if (node == NULL) {
             DEBUG_ERROR(" %s can't find the key.", "list_foreach_with_usr_data");
             return NULL;
@@ -202,42 +198,34 @@ int hash_get_count(const void* hash_table)
     return hash->entry_count;
 }
 
-
 static void hash_release(void* hash_table, int is_destroy)
 {
-    if(hash_table == NULL) {
+    if (hash_table == NULL) {
         DEBUG_ERROR("input parameter %s is null.", "hash_table");
         return;
     }
-    hash_t* hash = (hash_t*)hash_table;
+    hash_t* hash = (hash_t*) hash_table;
     int i = 0;
-    for(i = 0; i<=MAX_BUCKETS; i++)
-    {
+    for (i = 0; i <= MAX_BUCKETS; i++) {
         bucket_t* bucket = &(hash->bucket_list[i]);
-        if(bucket->list != NULL)
-        {
+        if (bucket->list != NULL) {
             list_clear(bucket->list, free_node);
             free(bucket->list);
             bucket->list = NULL;
             bucket->list_count = 0;
         }
     }
-    if(is_destroy)
-    {
+    if (is_destroy) {
         free(hash);
-    }
-    else 
-    {
-       hash->entry_count = 0;
+    } else {
+        hash->entry_count = 0;
     }
 }
-
 
 void hash_free(void* hash)
 {
     hash_release(hash, FALSE);
 }
-
 
 void hash_destroy(void* hash)
 {

@@ -199,11 +199,17 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         // Note: if cache pool is full, check unlocked node in libcache list back
         if (libcache_ptr->max_entry_number <= libcache_ptr->list->total_nodes) {
             // Note: if no unlocked node in libcache list, return directly
-            libcache_list_unlock_node = list_foreach(libcache_ptr->list, libcache_get_unlock_node);
+            DEBUG_INFO("the cache is full, try to swap old data out");
+            libcache_list_unlock_node = list_reverse_foreach(libcache_ptr->list, libcache_get_unlock_node);
             if (NULL == libcache_list_unlock_node) {
-                DEBUG_INFO("the cache is full, can't add data anymore");
+                DEBUG_INFO("all data are in use, swap failed!");
                 break;
             } else { // Note: if have unlocked node in libcache list
+                DEBUG_INFO("swap data successfully!");
+                list_remove(libcache_ptr->list, libcache_list_unlock_node);
+                libcache_list_unlock_node->next_node = NULL;
+                libcache_list_unlock_node->previous_node = NULL;
+
                 hash_del(libcache_ptr->hash_table, key,
                         ((libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data)->hash_node_ptr);
             }

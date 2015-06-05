@@ -156,6 +156,17 @@ node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t
  */
 void list_clear(list_t *list, void (*remove_node_cb)(node_t *node));
 
+/**
+ * @fn list_reverse_foreach
+ *
+ * @brief reverse traverse node in list
+ * @param [in] list - list pointer
+ * @param [in] int (*traverse_node_cb)(node_t *node) - call back function to handle traversed node in list;
+ *             return  - 0: traversing over; 1: continue traversing
+ * @return  node_t * - the node to be found
+ */
+node_t * list_reverse_foreach(list_t *list, int (*traverse_node_cb)(node_t *node));
+
 #ifdef __cplusplus
 }
 #endif
