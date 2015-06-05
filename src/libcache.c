@@ -8,6 +8,7 @@
 
 typedef struct libcache_node_usr_data_t
 {
+    void* key;
     node_t* hash_node_ptr;
     void* pool_element_ptr;
     uint32_t lock_counter;
@@ -209,13 +210,16 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
                 list_remove(libcache_ptr->list, libcache_list_unlock_node);
                 libcache_list_unlock_node->next_node = NULL;
                 libcache_list_unlock_node->previous_node = NULL;
+                libcache_node_usr_data_t* cache_data = (libcache_node_usr_data_t*) libcache_list_unlock_node->usr_data;
 
-                hash_del(libcache_ptr->hash_table, key,
-                        ((libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data)->hash_node_ptr);
+                hash_del(libcache_ptr->hash_table, cache_data->key, cache_data->hash_node_ptr);
+                memset(cache_data->key, 0, libcache_ptr->key_size);
             }
         } else { // Note: if cache pool is not full, create new node
             libcache_list_unlock_node = (node_t*)malloc(sizeof(node_t));
+
             libcache_list_unlock_node->usr_data = malloc(sizeof(libcache_node_usr_data_t));
+            ((libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data)->key = malloc(libcache_ptr->key_size);
             is_node_new_created = TRUE;
         }
 
@@ -228,6 +232,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         if (NULL != src_entry) {
              memcpy(libcache_node_usr_data->pool_element_ptr, src_entry, libcache_ptr->entry_size);
         }
+        memcpy(libcache_node_usr_data->key, key, libcache_ptr->key_size);
         libcache_node_usr_data->lock_counter = 0;
 
         // Note: push node in front of libcache list
