@@ -92,7 +92,7 @@ void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE
     hash->bits = get_bits(max_entry);
     hash->buckets_count = get_bucket_number(hash->bits);
 
-    hash->bucket_list = (bucket_t*) malloc(hash->buckets_count * sizeof(bucket_t));
+    hash->bucket_list = (bucket_t*) malloc((hash->buckets_count + 1) * sizeof(bucket_t));
     hash->entry_count = 0;
     hash->key_size = key_size;
     hash->kcmp = key_cmp;
