@@ -504,7 +504,7 @@ libcache_ret_t libcache_destroy(void * libcache)
 
     libcache_ptr->free_memory(libcache_ptr->pool);
 
-    hash_free(libcache_ptr->hash_table);
+    hash_destroy(libcache_ptr->hash_table);
     free(libcache_ptr->list);
     free(libcache_ptr);
 

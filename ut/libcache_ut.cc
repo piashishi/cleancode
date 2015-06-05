@@ -29,7 +29,7 @@ struct LibCacheFixture {
     }
     ~LibCacheFixture()
     {
-
+        libcache_destroy(g_cache);
     }
 };
 
@@ -87,12 +87,12 @@ TEST_FIXTURE(LibCacheFixture, TestLookup)
 
         int* ptr = (int*)libcache_lookup(g_cache, key, NULL);
         CHECK(*ptr == *entry);
-        entryList[i] = ptr; 
+        entryList[i] = ptr;
     }
 
    int key2 = 300;
    int entry2 = 3000;
-    
+
    //check all node were locked, no anymore node.
    int* value2 = (int*)libcache_add(g_cache, &key2, &entry2);
    CHECK(value2 == NULL);
@@ -126,7 +126,7 @@ TEST_FIXTURE(LibCacheFixture, TestDelete)
     int* value = (int*)libcache_add(g_cache, &key, &entry);
     int* value2 = (int*)libcache_add(g_cache, &key2, &entry2);
     int* value3= (int*)libcache_add(g_cache, &key3, &entry3);
- 
+
     libcache_scale_t  count = libcache_get_entry_number(g_cache);
     CHECK(count == 3);
 
@@ -169,7 +169,7 @@ TEST_FIXTURE(LibCacheFixture, TestSwap)
 {
     int* key = NULL;
     int* entry = NULL;
-    
+
     int i = 0;
     for(i = 0; i<100;i++)
     {
