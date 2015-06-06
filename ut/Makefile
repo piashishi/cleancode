@@ -1,5 +1,14 @@
 UT_SRC= main.cc libpete.cc libpool_ut.cc libcache_test.cc libcache_ut.cc  hash_ut.cc list_ut.cc
 
+ver=release
+
+ifeq ($(ver), debug)
+CFLAGS = -g -DDEBUG -fprofile-arcs -ftest-coverage
+else
+CFLAGS = -g
+endif
+
+
 SRC = ../src/list.c \
       ../src/hash.c \
       ../src/libcache.c \
@@ -18,15 +27,14 @@ LIB= ../lib -lUnitTest++  -lgcov
 .PHONY:clean
 
 UT: $(SRC_OBJ) $(UT_OBJ)
-	g++ -g -o cache_ut *.o -L${LIB}
+	g++ $(CFLAGS) -o cache_ut *.o -L${LIB}
 	@rm *.o
-	@mv *.gcno cov
 
 $(SRC_OBJ): 
-	gcc -g -c ${SRC} ${INC}  -fprofile-arcs -ftest-coverage
+	gcc $(CFLAGS) -c ${SRC} ${INC} 
 
 $(UT_OBJ):
-	g++ -D__STDC_FORMAT_MACROS -g -c $(UT_SRC) ${INC} -fprofile-arcs -ftest-coverage
+	g++  -D__STDC_FORMAT_MACROS $(CFLAGS) -c $(UT_SRC) ${INC}
 
 clean:
 	rm -f cache_ut

@@ -1,7 +1,7 @@
 #! /bin/sh
 
 cd ..
-make
+make ver=debug
 ./cache_ut
 mv *.gcda cov
 cd cov

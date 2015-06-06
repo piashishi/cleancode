@@ -49,11 +49,17 @@ typedef void LIBCACHE_FREE_MEMORY(void* addr);
 typedef void LIBCACHE_FREE_ENTRY(void* key, void* entry);
 typedef libcache_scale_t LIBCACHE_KEY_TO_NUMBER(const void* key);
 
+#ifdef DEBUG
 #define DEBUG_INFO(fmt, ...) \
     do { printf("%s %s info libcache: "fmt"  (%s:%d:%s)\n",__DATE__,__TIME__,##__VA_ARGS__,__FILE__,__LINE__,__FUNCTION__); } while(0);
 
 #define DEBUG_ERROR(fmt, ...) \
     do { printf("%s %s error libcache: "fmt" (%s:%d:%s)\n",__DATE__,__TIME__,##__VA_ARGS__,__FILE__,__LINE__,__FUNCTION__); } while(0);
+#else
+#define DEBUG_INFO(fmt, ...) 
+#define DEBUG_ERROR(fmt, ...)
+#endif
+
 
 
 #endif /* LIBCACHE_DEF_H_ */
