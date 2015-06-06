@@ -399,10 +399,12 @@ libcache_ret_t libcache_unlock_entry(void * libcache, void* entry)
     } else {
         // Note: unlock entry
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
-        if (libcache_node_usr_data->lock_counter > 0) {
+        if (libcache_node_usr_data->lock_counter == 0) {
+            return_value = LIBCACHE_UNLOCKED;
+        } else {
             libcache_node_usr_data->lock_counter--;
+            return_value = LIBCACHE_SUCCESS;
         }
-        return_value = LIBCACHE_SUCCESS;
     }
 
     return return_value;

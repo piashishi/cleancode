@@ -13,6 +13,8 @@ extern "C" {
 extern uint32_t test_key_to_int(const void* key);
 extern  libcache_cmp_ret_t test_key_com(const void* key1, const void* key2);
 
+const libcache_scale_t g_max_entry_number = 100;
+
 typedef struct test_data_t
 {
     void* key;
@@ -25,7 +27,7 @@ struct LibCacheFixture {
     void* g_cache;
     LibCacheFixture()
     {
-        g_cache = libcache_create(100, sizeof(int), sizeof(int), malloc, free, NULL, test_key_com, test_key_to_int);
+        g_cache = libcache_create(g_max_entry_number, sizeof(int), sizeof(int), malloc, free, NULL, test_key_com, test_key_to_int);
     }
     ~LibCacheFixture()
     {
@@ -76,40 +78,38 @@ TEST_FIXTURE(LibCacheFixture, TestLookup)
     int i = 0;
     int* key = NULL;
     int* entry = NULL;
-    int* entryList[100] = {0};
-    for(i = 0; i<100;i++)
-    {
-        key = (int*)malloc(sizeof(int));
-        entry = (int*)malloc(sizeof(int));
+    int* entryList[g_max_entry_number] = { 0 };
+    for (i = 0; i < g_max_entry_number; i++) {
+        key = (int*) malloc(sizeof(int));
+        entry = (int*) malloc(sizeof(int));
         *key = i;
-        *entry = 100*i;
-        int* value = (int*)libcache_add(g_cache, key, entry);
+        *entry = 100 * i;
+        int* value = (int*) libcache_add(g_cache, key, entry);
 
-        int* ptr = (int*)libcache_lookup(g_cache, key, NULL);
-        CHECK(*ptr == *entry);
+        int* ptr = (int*) libcache_lookup(g_cache, key, NULL);
+        CHECK_EQUAL(*ptr, *entry);
         entryList[i] = ptr;
     }
 
-   int key2 = 300;
-   int entry2 = 3000;
+    int key2 = 300;
+    int entry2 = 3000;
 
-   //check all node were locked, no anymore node.
-   int* value2 = (int*)libcache_add(g_cache, &key2, &entry2);
-   CHECK(value2 == NULL);
+    //check all node were locked, no anymore node.
+    int* value2 = (int*) libcache_add(g_cache, &key2, &entry2);
+    CHECK(value2 == NULL);
 
-   libcache_ret_t ret = LIBCACHE_SUCCESS;
-   for(i = 0; i<100;i++)
-   {
+    libcache_ret_t ret = LIBCACHE_SUCCESS;
+    for (i = 0; i < g_max_entry_number; i++) {
         ret = libcache_unlock_entry(g_cache, entryList[i]);
-        CHECK(ret == LIBCACHE_SUCCESS);
+        CHECK_EQUAL(ret, LIBCACHE_SUCCESS);
         ret = libcache_unlock_entry(g_cache, entryList[i]);
-        CHECK(ret == LIBCACHE_UNLOCKED);
-   }
-   value2 = (int*)libcache_add(g_cache, &key2, &entry2);
-   CHECK(*value2 == entry2);
+        CHECK_EQUAL(ret, LIBCACHE_UNLOCKED);
+    }
+    value2 = (int*) libcache_add(g_cache, &key2, &entry2);
+    CHECK_EQUAL(*value2, entry2);
 
-   ret = libcache_clean(g_cache);
-   CHECK(ret == LIBCACHE_SUCCESS);
+    ret = libcache_clean(g_cache);
+    CHECK_EQUAL(ret, LIBCACHE_SUCCESS);
 }
 
 TEST_FIXTURE(LibCacheFixture, TestDelete)
