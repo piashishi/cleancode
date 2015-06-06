@@ -145,7 +145,7 @@ TEST_FIXTURE(LibCacheFixture, TestDelete)
     count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(count, 1);
 
-    ret = libcache_delete_entry(g_cache, value3); //TODO: can be entry2 ?
+    ret = libcache_delete_entry(g_cache, value2); //TODO: can be entry2 ?
     count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(ret, LIBCACHE_NOT_FOUND);
     CHECK_EQUAL(count, 1);
@@ -156,7 +156,7 @@ TEST_FIXTURE(LibCacheFixture, TestDelete)
     count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(count, 1);
 
-    ret = libcache_delete_entry(g_cache, &entry3);
+    ret = libcache_delete_entry(g_cache, value3); //TODO: can be entry3 ?
     CHECK_EQUAL(ret, LIBCACHE_LOCKED);
     count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(count, 1);

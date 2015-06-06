@@ -361,7 +361,7 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
          }
 
         hash_data_t* hash_data = (hash_data_t*) (libcache_node_usr_data->hash_node_ptr->usr_data);
-        return_value = libcache_delete_by_key(libcache_ptr->hash_table, hash_data->key);
+        return_value = libcache_delete_by_key(libcache_ptr, hash_data->key);
     } while(0);
 
     return return_value;
