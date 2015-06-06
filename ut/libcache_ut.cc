@@ -114,7 +114,7 @@ TEST_FIXTURE(LibCacheFixture, TestLookup)
 
 TEST_FIXTURE(LibCacheFixture, TestDelete)
 {
-    int key  = 1;
+    int key = 1;
     int entry = 100;
 
     int key2 = 2;
@@ -123,46 +123,46 @@ TEST_FIXTURE(LibCacheFixture, TestDelete)
     int key3 = 3;
     int entry3 = 300;
 
-    int* value = (int*)libcache_add(g_cache, &key, &entry);
-    int* value2 = (int*)libcache_add(g_cache, &key2, &entry2);
-    int* value3= (int*)libcache_add(g_cache, &key3, &entry3);
+    int* value = (int*) libcache_add(g_cache, &key, &entry);
+    int* value2 = (int*) libcache_add(g_cache, &key2, &entry2);
+    int* value3 = (int*) libcache_add(g_cache, &key3, &entry3);
 
-    libcache_scale_t  count = libcache_get_entry_number(g_cache);
-    CHECK(count == 3);
+    libcache_scale_t count = libcache_get_entry_number(g_cache);
+    CHECK_EQUAL(count, 3);
 
     libcache_ret_t ret = libcache_delete_by_key(g_cache, &key);
-    CHECK(ret == LIBCACHE_SUCCESS);
+    CHECK_EQUAL(ret, LIBCACHE_SUCCESS);
     count = libcache_get_entry_number(g_cache);
-    CHECK(count == 2);
+    CHECK_EQUAL(count, 2);
 
     ret = libcache_delete_by_key(g_cache, &key);
-    CHECK(ret == LIBCACHE_NOT_FOUND);
+    CHECK_EQUAL(ret, LIBCACHE_NOT_FOUND);
     count = libcache_get_entry_number(g_cache);
-    CHECK(count == 2);
+    CHECK_EQUAL(count, 2);
 
-    ret = libcache_delete_entry(g_cache, &entry2);
-    CHECK(ret == LIBCACHE_SUCCESS);
+    ret = libcache_delete_entry(g_cache, value2); //TODO: can be entry2 ?
+    CHECK_EQUAL(ret, LIBCACHE_SUCCESS);
     count = libcache_get_entry_number(g_cache);
-    CHECK(count == 1);
+    CHECK_EQUAL(count, 1);
 
-    ret = libcache_delete_entry(g_cache, &entry2);
+    ret = libcache_delete_entry(g_cache, value3); //TODO: can be entry2 ?
     count = libcache_get_entry_number(g_cache);
-    CHECK(ret == LIBCACHE_NOT_FOUND);
-    CHECK(count == 1);
+    CHECK_EQUAL(ret, LIBCACHE_NOT_FOUND);
+    CHECK_EQUAL(count, 1);
 
     libcache_lookup(g_cache, &key3, NULL);
     ret = libcache_delete_by_key(g_cache, &key3);
-    CHECK(ret == LIBCACHE_LOCKED);
+    CHECK_EQUAL(ret, LIBCACHE_LOCKED);
     count = libcache_get_entry_number(g_cache);
-    CHECK(count == 1);
+    CHECK_EQUAL(count, 1);
 
     ret = libcache_delete_entry(g_cache, &entry3);
-    CHECK(ret == LIBCACHE_LOCKED);
+    CHECK_EQUAL(ret, LIBCACHE_LOCKED);
     count = libcache_get_entry_number(g_cache);
-    CHECK(count == 1);
+    CHECK_EQUAL(count, 1);
 
     ret = libcache_clean(g_cache);
-    CHECK(ret == LIBCACHE_SUCCESS);
+    CHECK_EQUAL(ret, LIBCACHE_SUCCESS);
 }
 
 TEST_FIXTURE(LibCacheFixture, TestSwap)
