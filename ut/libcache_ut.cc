@@ -171,46 +171,46 @@ TEST_FIXTURE(LibCacheFixture, TestSwap)
     int* entry = NULL;
 
     int i = 0;
-    for(i = 0; i<100;i++)
-    {
-        key = (int*)malloc(sizeof(int));
-        entry = (int*)malloc(sizeof(int));
+    for (i = 0; i < g_max_entry_number; i++) {
+        key = (int*) malloc(sizeof(int));
+        entry = (int*) malloc(sizeof(int));
         *key = i;
-        *entry = 100*i;
-        int* value = (int*)libcache_add(g_cache, key, entry);
-        CHECK(*value = *entry);
+        *entry = 100 * i;
+        int* value = (int*) libcache_add(g_cache, key, entry);
+        CHECK_EQUAL(*value, *entry);
     }
+
     int key2 = 200;
     int entry2 = 2000;
-    int* value2 = (int*)libcache_add(g_cache, &key2, &entry2);
+    int* value2 = (int*) libcache_add(g_cache, &key2, &entry2);
     CHECK(value2 != NULL);
-    CHECK(*value2 = entry2);
+    CHECK_EQUAL(*value2, entry2);
 
     //the first entry should be swap out
     int key3 = 0;
     int entry3 = 0;
-    int* value3 = (int*)libcache_lookup(g_cache, &key3, &entry3);
+    int* value3 = (int*) libcache_lookup(g_cache, &key3, &entry3);
     CHECK(value3 == NULL);
 
     libcache_destroy(g_cache);
 
-    g_cache = libcache_create(6553500, sizeof(int), sizeof(int), malloc, free, NULL, test_key_com, test_key_to_int);
+    const libcache_scale_t max_entry_number = 6553500;
 
-    libcache_scale_t  count = libcache_get_max_entry_number(g_cache);
-    CHECK(count == 6553500);
+    g_cache = libcache_create(max_entry_number, sizeof(int), sizeof(int), malloc, free, NULL, test_key_com, test_key_to_int);
 
-    for(i = 0; i<65535000;i++)
-    {
-        int* value4 = (int*)libcache_add(g_cache, &i, &i);
-        CHECK(*value4 = i);
+    libcache_scale_t count = libcache_get_max_entry_number(g_cache);
+    CHECK_EQUAL(count, max_entry_number);
+
+    for (i = 0; i < max_entry_number * 10; i++) {
+        int* value4 = (int*) libcache_add(g_cache, &i, &i);
+        CHECK_EQUAL(*value4, i);
     }
     count = libcache_get_entry_number(g_cache);
-    CHECK(count == 6553500);
+    CHECK_EQUAL(count, max_entry_number);
 
-    for(i = 0; i<65535;i++)
-    {
+    for (i = 0; i < 65535; i++) {
         int entry5 = 0;
-        int* value5 = (int*)libcache_lookup(g_cache, &i, &entry5);
+        int* value5 = (int*) libcache_lookup(g_cache, &i, &entry5);
         CHECK(value5 == NULL);
     }
 }
