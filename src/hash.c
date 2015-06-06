@@ -23,7 +23,7 @@ typedef struct to_find_node_t {
     LIBCACHE_CMP_KEY* kcmp;
 } to_find_node_t;
 
-u32 get_bits(u32 val)
+static u32 get_bits(u32 val)
 {
     u32 count = 1;
     while (val >>= 1 != 0) {
@@ -32,7 +32,7 @@ u32 get_bits(u32 val)
     return count;
 }
 
-u32 get_bucket_number(u32 val)
+static u32 get_bucket_number(u32 val)
 {
     if (val >= 32) {
         return MAX_BUCKETS;
