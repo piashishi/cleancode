@@ -57,10 +57,11 @@ void* libcache_create(
 
     size_t bucket_size = hash_calculate_bucket_size(max_entry_number);
 
-    pool_attr_t pool_attr[] = { { entry_size, max_entry_number },
+    pool_attr_t pool_attr[] = {
+            { entry_size, max_entry_number },
             { sizeof(libcache_t), 1 } ,
             { sizeof(list_t), 1 },
-            { sizeof(node_t), max_entry_number },
+            { sizeof(node_t), max_entry_number * 2},
             { sizeof(libcache_node_usr_data_t), max_entry_number },
             { key_size, max_entry_number },
             { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
@@ -219,7 +220,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
                 libcache_list_unlock_node->previous_node = NULL;
                 libcache_node_usr_data_t* cache_data = (libcache_node_usr_data_t*) libcache_list_unlock_node->usr_data;
 
-                hash_del(libcache_ptr->hash_table, cache_data->key, cache_data->hash_node_ptr);
+                hash_del(libcache_ptr->hash_table, cache_data->key, cache_data->hash_node_ptr, libcache_ptr->pool);
                 memset(cache_data->key, 0, libcache_ptr->key_size);
             }
         } else { // Note: if cache pool is not full, create new node
@@ -267,7 +268,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         }
 
         // Note: add node into hash
-        libcache_node_usr_data->hash_node_ptr = hash_add(libcache_ptr->hash_table, key, libcache_list_unlock_node);
+        libcache_node_usr_data->hash_node_ptr = hash_add(libcache_ptr->hash_table, key, libcache_list_unlock_node, libcache_ptr->pool);
 
         // Note: the entry in cache will be locked if src_entry is NULL
         if (NULL == src_entry) {
@@ -320,7 +321,7 @@ libcache_ret_t  libcache_delete_by_key(void * libcache, const void* key)
          }
 
         // Note: delete node from hash
-        (void) hash_del(libcache_ptr->hash_table, key, libcache_node_usr_data->hash_node_ptr);
+        (void) hash_del(libcache_ptr->hash_table, key, libcache_node_usr_data->hash_node_ptr, libcache_ptr->pool);
 
         // Note: delete node from pool
         pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);

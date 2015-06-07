@@ -58,7 +58,7 @@ void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE
  * @return NULL  - when out of memory.
  * @return pointer to hash list node
  */
-void* hash_add(void* hash, const void* key, void* cache_node);
+void* hash_add(void* hash, const void* key, void* cache_node, void* pool_handle);
 
 /**
  * @fn hash_del
@@ -70,7 +70,7 @@ void* hash_add(void* hash, const void* key, void* cache_node);
  * @return 0  - when delete successfully
  * @return -1 when delete fail
  */
-int hash_del(void* hash, const void* key, void* hash_node);
+int hash_del(void* hash, const void* key, void* hash_node, void* pool_handle);
 
 /**
  * @fn hash_find

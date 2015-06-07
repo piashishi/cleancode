@@ -66,9 +66,9 @@ static int find_node(node_t* node, void* usr_data)
     return to_find_node->kcmp(to_find_node->key, hd->key);
 }
 
-static void free_node(node_t* node)
+static void free_node(node_t* node, void* pool_handle)
 {
-    if (node == NULL) {
+    if (node == NULL || pool_handle == NULL) {
         DEBUG_ERROR("input parameter %s is null.", "node");
         return;
     }
@@ -79,7 +79,7 @@ static void free_node(node_t* node)
         }
         free(hd);
     }
-    free(node);
+    pool_free_element(pool_handle, POOL_TYPE_NODE_T, node);
     return;
 }
 
@@ -122,7 +122,7 @@ void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE
     return hash;
 }
 
-void* hash_add(void* hash_table, const void* key, void* cache_node)
+void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_handle)
 {
     if (hash_table == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s is null.",
@@ -137,7 +137,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
         return NULL;
     }
 
-    node_t* node = (node_t*) malloc(sizeof(node_t));
+    node_t* node = (node_t*) pool_get_element(pool_handle, POOL_TYPE_NODE_T);
     if (node == NULL) {
         DEBUG_ERROR("%s get memory failed, out of memory!", "hash");
         return NULL;
@@ -164,7 +164,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node)
     return node;
 }
 
-int hash_del(void* hash_table, const void* key, void* hash_node)
+int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_handle)
 {
     if (hash_table == NULL || hash_node == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s %s is null.",
@@ -188,7 +188,7 @@ int hash_del(void* hash_table, const void* key, void* hash_node)
     } else {
         node_t* node = (node_t*) hash_node;
         list_remove(bucket->list, node);
-        free_node(node);
+        (void)pool_free_element(pool_handle, POOL_TYPE_NODE_T, node);
     }
     bucket->list_count--;
     hash->entry_count--;
@@ -247,12 +247,13 @@ static void hash_release(void* hash_table, int is_destroy, void* pool_handle)
     int i = 0;
     for (i = 0; i <= hash->buckets_count; i++) {
         bucket_t* bucket = &(hash->bucket_list[i]);
-        if (bucket->list != NULL) {
-            list_clear(bucket->list, free_node);
-            free(bucket->list);
-            bucket->list = NULL;
-            bucket->list_count = 0;
+        node_t *bucket_node;
+        while (NULL != (bucket_node = list_pop_front(bucket->list))) {
+            free_node(bucket_node, pool_handle);
         }
+        free(bucket->list);
+        bucket->list = NULL;
+        bucket->list_count = 0;
     }
     if (is_destroy) {
         pool_free_element(pool_handle, POOL_TYPE_BUCKET_T, hash->bucket_list);

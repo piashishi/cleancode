@@ -46,10 +46,11 @@ struct HashFixture {
     {
         const int max_entry = 655350;
 
-        pool_attr_t pool_attr[] = { { 1, 1 },
-                { 1, 1 } ,
+        pool_attr_t pool_attr[] = {
                 { 1, 1 },
                 { 1, 1 },
+                { 1, 1 },
+                { sizeof(node_t), max_entry},
                 { 1, 1 },
                 { 1, 1 },
                 { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
@@ -90,7 +91,7 @@ struct HashFixture {
             td->key = (int*) malloc(sizeof(int));
             memcpy(td->key, &i, sizeof(int));
 
-            hash_entry = (node_t*) hash_add(g_hash, &i, list_entry);
+            hash_entry = (node_t*) hash_add(g_hash, &i, list_entry, pools);
             if (hash_entry == NULL) {
                 printf("insert to hash failed!\n");
                 return -1;
@@ -164,7 +165,7 @@ TEST_FIXTURE(HashFixture, TestDelHash)
     node_t* node2 = list_pop_front(list);
     test_data_t* td = (test_data_t*) node2->usr_data;
 
-    ret = hash_del(g_hash, &value, td->entry);
+    ret = hash_del(g_hash, &value, td->entry, pools);
     CHECK(ret == 0);
 
     node = (node_t*) hash_find(g_hash, &value);
