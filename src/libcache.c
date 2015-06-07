@@ -1,4 +1,5 @@
-#include <malloc.h>
+#include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "libcache.h"
@@ -54,20 +55,20 @@ void* libcache_create(
         return NULL;
     }
 
-    size_t pool_element_size = entry_size + key_size;
-    while (0 != pool_element_size % 4) {
-        pool_element_size++;
-    }
 
-    libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
+    pool_attr_t pool_attr[] = { { entry_size, max_entry_number }, { sizeof(libcache_t), 1 } };
 
-    pool_attr_t pool_attr[] = {{entry_size, max_entry_number}};
+    assert(sizeof(pool_attr) / sizeof(pool_attr_t) == POOL_TYPE_MAX); // TODO
+
     size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
 
     void *large_memory = allocate_memory(large_mem_size);
-    libcache->pool = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
-    // libcache->pool = pool_init(entry_size * max_entry_number, allocate_memory, free_memory);
-    // return_t init_result = pool_init_element_pool(libcache->pool, entry_size, max_entry_number);
+    void * pools = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
+
+//    libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
+    libcache_t* libcache = pool_get_element(pools, POOL_TYPE_LIBCACHE);
+    assert(libcache != NULL); // TODO
+    libcache->pool = pools;
 
     libcache->hash_table = hash_init(max_entry_number, key_size, cmp_key, key_to_number);
 
@@ -515,11 +516,9 @@ libcache_ret_t libcache_destroy(void * libcache)
     }
     // TODO: void hash_destroy(void* hash)
 
-    libcache_ptr->free_memory(libcache_ptr->pool);
-
-    hash_destroy(libcache_ptr->hash_table);
     free(libcache_ptr->list);
-    free(libcache_ptr);
+    hash_destroy(libcache_ptr->hash_table);
+    libcache_ptr->free_memory(libcache_ptr->pool);
 
     return LIBCACHE_SUCCESS;
 }

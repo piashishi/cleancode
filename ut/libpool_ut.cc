@@ -61,11 +61,12 @@ TEST(libpool_ut_get_element)
     const int entry_count = 25;
 
     pool_attr_t pool_attr[] = {{element_size, entry_count}};
-    size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
+    const int pool_count = sizeof(pool_attr) / sizeof(pool_attr_t);
+    size_t large_mem_size = pool_caculate_total_length(pool_count, pool_attr);
     void* large_mem = malloc(large_mem_size);
     CHECK_EQUAL(!large_mem, 0);
 
-    void *pools = pools_init(large_mem, large_mem_size, POOL_TYPE_MAX, pool_attr);
+    void *pools = pools_init(large_mem, large_mem_size, pool_count, pool_attr);
     CHECK_EQUAL(!pools, 0);
 
     void * entry_stack[entry_count];
@@ -73,7 +74,7 @@ TEST(libpool_ut_get_element)
     int i;
     void *entry;
     for (i = 0; i < entry_count; i++) {
-        entry = pool_get_element(pools, POOL_TYPE_DATA);
+        entry = pool_get_element(pools, TEST_POOL_TYPE_DATA);
         CHECK_EQUAL(entry != (void* )NULL, TRUE);
 
         // printf("entry[%d] = %X\n", i, entry);
@@ -82,16 +83,16 @@ TEST(libpool_ut_get_element)
 
     // printf("entry[%d] = %X\n", i, entry);
 
-    entry = pool_get_element(pools, POOL_TYPE_DATA);
+    entry = pool_get_element(pools, TEST_POOL_TYPE_DATA);
     CHECK_EQUAL(entry == (void* )NULL, TRUE);
 
     return_t ret;
     for (i = 0; i < entry_count; i++) {
-        ret = pool_free_element(pools, POOL_TYPE_DATA, entry_stack[i]);
+        ret = pool_free_element(pools, TEST_POOL_TYPE_DATA, entry_stack[i]);
         CHECK_EQUAL(ret, OK);
     }
 
-    ret = pool_free_element(pools, POOL_TYPE_DATA, entry_stack[i]);
+    ret = pool_free_element(pools, TEST_POOL_TYPE_DATA, entry_stack[i]);
     CHECK_EQUAL(ret, ERR);
 
     free(pools);
