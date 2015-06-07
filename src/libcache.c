@@ -63,7 +63,7 @@ void* libcache_create(
             { sizeof(list_t), 1 + hash_get_bucket_count(max_entry_number)},
             { sizeof(node_t), max_entry_number * 2},
             { sizeof(libcache_node_usr_data_t), max_entry_number },
-            { key_size, max_entry_number },
+            { key_size, max_entry_number * 2},
             { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
             { bucket_size, 1 }, // POOL_TYPE_BUCKET_T
             { sizeof(hash_data_t), max_entry_number},

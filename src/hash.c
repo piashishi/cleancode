@@ -76,7 +76,7 @@ static void free_node(node_t* node, void* pool_handle)
     hash_data_t* hd = (hash_data_t*) node->usr_data;
     if (hd != NULL) {
         if (hd->key != NULL) {
-            free(hd->key);
+            pool_free_element(pool_handle, POOL_TYPE_KEY_SIZE, hd->key);
         }
         pool_free_element(pool_handle, POOL_TYPE_HASH_DATA_T, hd);
     }
@@ -154,7 +154,8 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
     node->usr_data = (hash_data_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_DATA_T);
     assert(node->usr_data != NULL);
     hash_data_t* hd = (hash_data_t*) node->usr_data;
-    hd->key = malloc(hash->key_size);
+    hd->key = pool_get_element(pool_handle, POOL_TYPE_KEY_SIZE);
+    assert(hd->key != NULL);
     memset(hd->key, 0, hash->key_size);
     memcpy(hd->key, key, hash->key_size);
 
@@ -199,6 +200,7 @@ int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_hand
     } else {
         node_t* node = (node_t*) hash_node;
         list_remove(bucket->list, node);
+        (void)pool_free_element(pool_handle, POOL_TYPE_KEY_SIZE, ((hash_data_t*) node->usr_data)->key);
         (void)pool_free_element(pool_handle, POOL_TYPE_HASH_DATA_T, node->usr_data);
         (void)pool_free_element(pool_handle, POOL_TYPE_NODE_T, node);
     }

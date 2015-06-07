@@ -52,7 +52,7 @@ struct HashFixture {
                 { sizeof(list_t), hash_get_bucket_count(max_entry)},
                 { sizeof(node_t), max_entry},
                 { 1, 1 },
-                { 1, 1 },
+                { sizeof(int), max_entry },
                 { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
                 { hash_calculate_bucket_size(max_entry), 1 }, // POOL_TYPE_BUCKET_T
                 { sizeof(hash_data_t), max_entry },
