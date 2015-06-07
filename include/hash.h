@@ -33,6 +33,8 @@ typedef struct hash_t {
     bucket_t* bucket_list;
 } hash_t;
 
+int hash_calculate_bucket_size(int max_entry);
+
 /**
  * @fn hash_init
  *
@@ -44,7 +46,7 @@ typedef struct hash_t {
  * @return NULL  - when out of memory.
  * @return pointer to hash table
  */
-void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num);
+void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num, void *pool_handle);
 
 /**
  * @fn hash_add
@@ -97,7 +99,7 @@ int hash_get_count(const void* hash);
  * @brief free hash_table
  * @param [in] hash - hash table
  */
-void hash_free(void* hash);
+void hash_free(void* hash, void* pool_handle);
 
 /**
  * @fn hash_destroy
@@ -105,7 +107,7 @@ void hash_free(void* hash);
  * @brief destroy hash_table
  * @param [in] hash - hash table
  */
-void hash_destroy(void* hash);
+void hash_destroy(void* hash, void* pool_handle);
 
 #endif
 

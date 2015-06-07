@@ -55,6 +55,7 @@ void* libcache_create(
         return NULL;
     }
 
+    size_t bucket_size = hash_calculate_bucket_size(max_entry_number);
 
     pool_attr_t pool_attr[] = { { entry_size, max_entry_number },
             { sizeof(libcache_t), 1 } ,
@@ -62,6 +63,8 @@ void* libcache_create(
             { sizeof(node_t), max_entry_number },
             { sizeof(libcache_node_usr_data_t), max_entry_number },
             { key_size, max_entry_number },
+            { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
+            { bucket_size, 1 }, // POOL_TYPE_BUCKET_T
             };
 
     assert(sizeof(pool_attr) / sizeof(pool_attr_t) == POOL_TYPE_MAX); // TODO
@@ -69,13 +72,18 @@ void* libcache_create(
     size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
 
     void *large_memory = allocate_memory(large_mem_size);
+    assert(large_memory != NULL);
+    if (large_memory == NULL) {
+        DEBUG_ERROR("Memory malloc failed!")
+    }
+
     void * pools = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
 
     libcache_t* libcache = (libcache_t*) pool_get_element(pools, POOL_TYPE_LIBCACHE_T);
     assert(libcache != NULL); // TODO
     libcache->pool = pools;
 
-    libcache->hash_table = hash_init(max_entry_number, key_size, cmp_key, key_to_number);
+    libcache->hash_table = hash_init(max_entry_number, key_size, cmp_key, key_to_number, libcache->pool);
 
     libcache->list = (list_t*) pool_get_element(pools, POOL_TYPE_LIST_T);
     assert(libcache->list != NULL); // TODO
@@ -86,14 +94,6 @@ void* libcache_create(
     libcache->max_entry_number = max_entry_number;
     libcache->free_memory = free_memory;
     libcache->free_entry = free_entry;
-
-    if (NULL == libcache->pool || NULL == libcache->hash_table) {
-        hash_free(libcache->hash_table);
-        free(libcache->list);
-        free(libcache);
-        libcache = NULL;
-        DEBUG_ERROR("init %s failed.", (NULL == libcache->pool) ? "pool" : "hash");
-    }
 
     return libcache;
 }
@@ -526,9 +526,8 @@ libcache_ret_t libcache_destroy(void * libcache)
         // Note: remove node of list
         libcache_node = NULL;
     }
-    // TODO: void hash_destroy(void* hash)
 
-    hash_destroy(libcache_ptr->hash_table);
+    hash_destroy(libcache_ptr->hash_table, libcache_ptr->pool);
     libcache_ptr->free_memory(libcache_ptr->pool);
 
     return LIBCACHE_SUCCESS;

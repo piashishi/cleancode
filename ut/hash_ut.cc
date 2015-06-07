@@ -1,11 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "UnitTest++.h"
 
 extern "C" {
 
+#include "libpool.h"
 #include "hash.h"
 #include "libcache_def.h"
 
@@ -38,10 +40,30 @@ libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
 struct HashFixture {
     hash_t* g_hash;
     list_t* list;
+    void * pools;
 
     HashFixture()
     {
-        g_hash = (hash_t*) hash_init(655350, sizeof(int), test_key_com, test_key_to_int);
+        const int max_entry = 655350;
+
+        pool_attr_t pool_attr[] = { { 1, 1 },
+                { 1, 1 } ,
+                { 1, 1 },
+                { 1, 1 },
+                { 1, 1 },
+                { 1, 1 },
+                { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
+                { hash_calculate_bucket_size(max_entry), 1 }, // POOL_TYPE_BUCKET_T
+                };
+
+        const int pool_count = sizeof(pool_attr) / sizeof(pool_attr_t);
+        size_t large_mem_size = pool_caculate_total_length(pool_count, pool_attr);
+
+        void *large_memory = malloc(large_mem_size);
+        assert(large_memory != NULL);
+        pools = pools_init(large_memory, large_mem_size, pool_count, pool_attr);
+        assert(pools != NULL);
+        g_hash = (hash_t*) hash_init(max_entry, sizeof(int), test_key_com, test_key_to_int, pools);
         list = (list_t*) malloc(sizeof(list_t));
         list_init(list);
     }
@@ -52,6 +74,7 @@ struct HashFixture {
             free(list_entry);
         }
         free(list);
+        free(pools);
     }
 
     int init_hash_table()
@@ -98,7 +121,7 @@ TEST_FIXTURE(HashFixture, TestAddHash)
     }
     CHECK(count == 655350);
 
-    hash_free(g_hash);
+    hash_free(g_hash, pools);
     CHECK(g_hash->entry_count == 0);
     CHECK(g_hash->bucket_list[0].list == NULL);
     CHECK(g_hash->bucket_list[0].list_count == 0);
@@ -124,7 +147,7 @@ TEST_FIXTURE(HashFixture, TestFindHash)
     int value2 = 655360;
     node = (node_t*) hash_find(g_hash, &value2);
     CHECK(node == NULL);
-    hash_free(g_hash);
+    hash_free(g_hash, pools);
 }
 
 TEST_FIXTURE(HashFixture, TestDelHash)
@@ -150,6 +173,6 @@ TEST_FIXTURE(HashFixture, TestDelHash)
     int count = hash_get_count(g_hash);
     CHECK(count == 655349);
 
-    hash_destroy(g_hash);
+    hash_destroy(g_hash, pools);
 }
 

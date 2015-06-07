@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "hash.h"
+#include "libpool.h"
 
 #define HASH_BIT 16
 
@@ -82,9 +83,23 @@ static void free_node(node_t* node)
     return;
 }
 
-void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num)
+int hash_calculate_bucket_size(int max_entry)
 {
-    hash_t* hash = (hash_t*) malloc(sizeof(hash_t));
+    int bits = get_bits(max_entry);
+    int buckets_count = get_bucket_number(bits);
+    size_t bucket_size = (buckets_count + 1) * sizeof(bucket_t);
+
+    return bucket_size;
+}
+
+void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num, void *pool_handle)
+{
+    if (pool_handle == NULL) {
+        DEBUG_ERROR("pool_handle can not be NULL.");
+        return NULL;
+    }
+
+    hash_t* hash = (hash_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_T);
     if (hash == NULL) {
         DEBUG_ERROR("%s init failed: ouf of memory!", "hash");
         return NULL;
@@ -92,7 +107,7 @@ void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE
     hash->bits = get_bits(max_entry);
     hash->buckets_count = get_bucket_number(hash->bits);
 
-    hash->bucket_list = (bucket_t*) malloc((hash->buckets_count + 1) * sizeof(bucket_t));
+    hash->bucket_list = (bucket_t*) pool_get_element(pool_handle, POOL_TYPE_BUCKET_T);
     hash->entry_count = 0;
     hash->key_size = key_size;
     hash->kcmp = key_cmp;
@@ -222,7 +237,7 @@ int hash_get_count(const void* hash_table)
     return hash->entry_count;
 }
 
-static void hash_release(void* hash_table, int is_destroy)
+static void hash_release(void* hash_table, int is_destroy, void* pool_handle)
 {
     if (hash_table == NULL) {
         DEBUG_ERROR("input parameter %s is null.", "hash_table");
@@ -240,19 +255,19 @@ static void hash_release(void* hash_table, int is_destroy)
         }
     }
     if (is_destroy) {
-        free(hash->bucket_list);
-        free(hash);
+        pool_free_element(pool_handle, POOL_TYPE_BUCKET_T, hash->bucket_list);
+        pool_free_element(pool_handle, POOL_TYPE_HASH_T, hash);
     } else {
         hash->entry_count = 0;
     }
 }
 
-void hash_free(void* hash)
+void hash_free(void* hash, void* pool_handle)
 {
-    hash_release(hash, FALSE);
+    hash_release(hash, FALSE, pool_handle);
 }
 
-void hash_destroy(void* hash)
+void hash_destroy(void* hash, void* pool_handle)
 {
-    hash_release(hash, TRUE);
+    hash_release(hash, TRUE, pool_handle);
 }

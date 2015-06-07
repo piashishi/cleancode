@@ -132,6 +132,9 @@ void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, poo
 void* pool_get_element(void* pools, int pool_type)
 {
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
+    if (pool == NULL) {
+        return NULL;
+    }
 
     node_t *node = list_pop_back(&pool->free_list);
     void* element;
