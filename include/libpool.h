@@ -33,7 +33,11 @@ typedef struct pool_attr_t {
 
 typedef enum pool_type_e {
     POOL_TYPE_DATA,
-    POOL_TYPE_LIBCACHE,
+    POOL_TYPE_LIBCACHE_T,
+    POOL_TYPE_LIST_T,
+    POOL_TYPE_NODE_T,
+    POOL_TYPE_LIBCACHE_NODE_USR_DATA_T,
+    POOL_TYPE_KEY_SIZE,
     POOL_TYPE_MAX,
 } pool_type_e;
 

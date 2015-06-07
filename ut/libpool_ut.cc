@@ -17,15 +17,16 @@ TEST(libpool_ut_init)
     const int entry_count = 25;
 
     pool_attr_t pool_attr[] = {{element_size, entry_count}};
-    size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
+    const int pool_count = sizeof(pool_attr) / sizeof(pool_attr_t);
+    size_t large_mem_size = pool_caculate_total_length(pool_count, pool_attr);
 
     void *large_memory = malloc(large_mem_size);
     CHECK(large_memory != NULL);
-    void *pools = pools_init(large_memory, large_mem_size - 1, POOL_TYPE_MAX, pool_attr);
+    void *pools = pools_init(large_memory, large_mem_size - 1, pool_count, pool_attr);
     CHECK(pools == NULL);
 
 
-    pools = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
+    pools = pools_init(large_memory, large_mem_size, pool_count, pool_attr);
     CHECK(pools != NULL);
 
     free(pools);

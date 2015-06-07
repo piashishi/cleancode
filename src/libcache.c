@@ -56,7 +56,13 @@ void* libcache_create(
     }
 
 
-    pool_attr_t pool_attr[] = { { entry_size, max_entry_number }, { sizeof(libcache_t), 1 } };
+    pool_attr_t pool_attr[] = { { entry_size, max_entry_number },
+            { sizeof(libcache_t), 1 } ,
+            { sizeof(list_t), 1 },
+            { sizeof(node_t), max_entry_number },
+            { sizeof(libcache_node_usr_data_t), max_entry_number },
+            { key_size, max_entry_number },
+            };
 
     assert(sizeof(pool_attr) / sizeof(pool_attr_t) == POOL_TYPE_MAX); // TODO
 
@@ -65,14 +71,14 @@ void* libcache_create(
     void *large_memory = allocate_memory(large_mem_size);
     void * pools = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
 
-//    libcache_t* libcache = (libcache_t*)malloc(sizeof(libcache_t));
-    libcache_t* libcache = pool_get_element(pools, POOL_TYPE_LIBCACHE);
+    libcache_t* libcache = (libcache_t*) pool_get_element(pools, POOL_TYPE_LIBCACHE_T);
     assert(libcache != NULL); // TODO
     libcache->pool = pools;
 
     libcache->hash_table = hash_init(max_entry_number, key_size, cmp_key, key_to_number);
 
-    libcache->list = (list_t*)malloc(sizeof(list_t));
+    libcache->list = (list_t*) pool_get_element(pools, POOL_TYPE_LIST_T);
+    assert(libcache->list != NULL); // TODO
     list_init(libcache->list);
 
     libcache->entry_size = entry_size;
@@ -217,10 +223,17 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
                 memset(cache_data->key, 0, libcache_ptr->key_size);
             }
         } else { // Note: if cache pool is not full, create new node
-            libcache_list_unlock_node = (node_t*)malloc(sizeof(node_t));
+            libcache_list_unlock_node = (node_t*)pool_get_element(libcache_ptr->pool, POOL_TYPE_NODE_T);
+            assert(libcache_list_unlock_node != NULL);
 
-            libcache_list_unlock_node->usr_data = malloc(sizeof(libcache_node_usr_data_t));
-            ((libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data)->key = malloc(libcache_ptr->key_size);
+            libcache_list_unlock_node->usr_data = pool_get_element(libcache_ptr->pool,
+                                                                   POOL_TYPE_LIBCACHE_NODE_USR_DATA_T);
+            assert(libcache_list_unlock_node->usr_data != NULL);
+
+            ((libcache_node_usr_data_t*) libcache_list_unlock_node->usr_data)->key =
+                    pool_get_element(libcache_ptr->pool, POOL_TYPE_KEY_SIZE);
+            assert(((libcache_node_usr_data_t*) libcache_list_unlock_node->usr_data)->key != NULL);
+
             is_node_new_created = TRUE;
         }
 
@@ -316,8 +329,9 @@ libcache_ret_t  libcache_delete_by_key(void * libcache, const void* key)
         list_remove(libcache_ptr->list, libcache_node);
 
         // Note: free node resource
-        free(libcache_node_usr_data);
-        free(libcache_node);
+        pool_free_element(libcache_ptr->pool, POOL_TYPE_LIBCACHE_NODE_USR_DATA_T, libcache_node_usr_data);
+        pool_free_element(libcache_ptr->pool, POOL_TYPE_KEY_SIZE, ((libcache_node_usr_data_t*)libcache_node->usr_data)->key);
+        pool_free_element(libcache_ptr->pool, POOL_TYPE_NODE_T, libcache_node);
 
         return_value = LIBCACHE_SUCCESS;
     } while(0);
@@ -476,8 +490,8 @@ libcache_ret_t libcache_clean(void * libcache)
         }
 
         // Note: remove node of list
-        free(libcache_node_usr_data);
-        free(libcache_node);
+        pool_free_element(libcache_ptr->pool, POOL_TYPE_LIBCACHE_NODE_USR_DATA_T, libcache_node_usr_data);
+        pool_free_element(libcache_ptr->pool, POOL_TYPE_NODE_T, libcache_node);
         libcache_node = NULL;
     }
 
@@ -510,13 +524,10 @@ libcache_ret_t libcache_destroy(void * libcache)
         }
 
         // Note: remove node of list
-        free(libcache_node_usr_data);
-        free(libcache_node);
         libcache_node = NULL;
     }
     // TODO: void hash_destroy(void* hash)
 
-    free(libcache_ptr->list);
     hash_destroy(libcache_ptr->hash_table);
     libcache_ptr->free_memory(libcache_ptr->pool);
 

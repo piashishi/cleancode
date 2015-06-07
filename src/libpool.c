@@ -7,13 +7,6 @@
 #define INVALID_INDEX (-1)
 #define MAGIC_CHECK_VALUE (13)
 
-#define ALIGN(d_num)           \
-do {                           \
-    while ((d_num) % 4 != 0) { \
-        (d_num) = (d_num) + 1; \
-    }                          \
-} while (0);
-
 typedef int pools_count_t ;
 
 static size_t pool_caculate_pool_head_length(void)
@@ -28,7 +21,9 @@ static size_t pool_caculate_nodes_length(int entry_acount)
 
 static size_t pool_caculate_element_length(size_t entry_size)
 {
-    ALIGN(entry_size);
+    while ((entry_size) % 4 != 0) {
+        (entry_size) = (entry_size) + 1;
+    }
     return sizeof(element_usr_data_t) + entry_size;
 }
 static size_t pool_caculate_elements_length(size_t entry_size, int entry_acount)
