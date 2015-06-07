@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 
 #include "hash.h"
@@ -77,7 +78,7 @@ static void free_node(node_t* node, void* pool_handle)
         if (hd->key != NULL) {
             free(hd->key);
         }
-        free(hd);
+        pool_free_element(pool_handle, POOL_TYPE_HASH_DATA_T, hd);
     }
     pool_free_element(pool_handle, POOL_TYPE_NODE_T, node);
     return;
@@ -142,7 +143,8 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
         DEBUG_ERROR("%s get memory failed, out of memory!", "hash");
         return NULL;
     }
-    node->usr_data = (hash_data_t*) malloc(sizeof(hash_data_t));
+    node->usr_data = (hash_data_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_DATA_T);
+    assert(node->usr_data != NULL);
     hash_data_t* hd = (hash_data_t*) node->usr_data;
     hd->key = malloc(hash->key_size);
     memset(hd->key, 0, hash->key_size);
@@ -188,6 +190,7 @@ int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_hand
     } else {
         node_t* node = (node_t*) hash_node;
         list_remove(bucket->list, node);
+        (void)pool_free_element(pool_handle, POOL_TYPE_HASH_DATA_T, node->usr_data);
         (void)pool_free_element(pool_handle, POOL_TYPE_NODE_T, node);
     }
     bucket->list_count--;

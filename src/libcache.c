@@ -66,6 +66,7 @@ void* libcache_create(
             { key_size, max_entry_number },
             { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
             { bucket_size, 1 }, // POOL_TYPE_BUCKET_T
+            { sizeof(hash_data_t), max_entry_number},
             };
 
     assert(sizeof(pool_attr) / sizeof(pool_attr_t) == POOL_TYPE_MAX); // TODO
@@ -242,6 +243,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_list_unlock_node->usr_data;
         if (is_node_new_created) {
             libcache_node_usr_data->pool_element_ptr = pool_get_element(libcache_ptr->pool, POOL_TYPE_DATA);
+            assert(libcache_node_usr_data->pool_element_ptr != NULL);
         }
 
         if (NULL != src_entry) {
@@ -496,6 +498,7 @@ libcache_ret_t libcache_clean(void * libcache)
         libcache_node = NULL;
     }
 
+    hash_free(libcache_ptr->hash_table, libcache_ptr->pool);
     return LIBCACHE_SUCCESS;
 }
 

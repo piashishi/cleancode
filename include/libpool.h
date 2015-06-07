@@ -40,6 +40,7 @@ typedef enum pool_type_e {
     POOL_TYPE_KEY_SIZE,
     POOL_TYPE_HASH_T,
     POOL_TYPE_BUCKET_T,
+    POOL_TYPE_HASH_DATA_T,
     POOL_TYPE_MAX,
 } pool_type_e;
 

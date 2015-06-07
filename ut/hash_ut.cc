@@ -55,6 +55,7 @@ struct HashFixture {
                 { 1, 1 },
                 { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
                 { hash_calculate_bucket_size(max_entry), 1 }, // POOL_TYPE_BUCKET_T
+                { sizeof(hash_data_t), max_entry },
                 };
 
         const int pool_count = sizeof(pool_attr) / sizeof(pool_attr_t);
