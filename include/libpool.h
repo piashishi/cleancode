@@ -36,9 +36,9 @@ typedef enum pool_type_e {
     POOL_TYPE_MAX,
 } pool_type_e;
 
-size_t pool_caculate_total_length(pool_type_e pool_acount, pool_attr_t pool_attr[]);
+size_t pool_caculate_total_length(int pool_acount, pool_attr_t pool_attr[]);
 
-void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_acount, pool_attr_t pool_attr[]);
+void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, pool_attr_t pool_attr[]);
 
 /**
  * @fn pool_init
@@ -67,7 +67,7 @@ void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_aco
  * @param [in] pool - pool pointer, should initiated by pool_init first.
  * @return -  a point to element memory (NULL for failed)
  */
-void* pool_get_element(void* pools, pool_type_e pool_type);
+void* pool_get_element(void* pools, int pool_type);
 
 /**
  * @fn pool_free_element
@@ -77,7 +77,7 @@ void* pool_get_element(void* pools, pool_type_e pool_type);
  * @param [in] element  - element address
  * @return -  OK / ERR
  */
-return_t pool_free_element(void* pools, pool_type_e pool_type, void* element);
+return_t pool_free_element(void* pools, int pool_type, void* element);
 
 /**
  * @fn pool_get_key_by_element_address

@@ -57,7 +57,7 @@ static size_t pool_caculate_length(size_t entry_size, int entry_acount)
     return pool_head_length + nodes_length + elements_length;
 }
 
-size_t pool_caculate_total_length(pool_type_e pool_acount, pool_attr_t pool_attr[])
+size_t pool_caculate_total_length(int pool_acount, pool_attr_t pool_attr[])
 {
     size_t pools_head_size = sizeof(pools_count_t) + sizeof(element_pool_t*) * pool_acount;
     int i;
@@ -87,7 +87,7 @@ static element_usr_data_t* pool_get_element_addr(element_pool_t* pool, int j)
 // | element_pool_t pools 0 | + | node_t 0.0 | node 0.1 | ... | + | element_usr_data_t 0.0 | entry_0.0 | ... |
 // | element_pool_t pools 1 | + | node_t 1.0 | node 1.1 | ... | + | element_usr_data_t 1.0 | entry_1.0 | ... |
 // | ... |
-void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_acount, pool_attr_t pool_attr[])
+void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, pool_attr_t pool_attr[])
 {
     size_t total_length = pool_caculate_total_length(pool_acount, pool_attr);
     if (large_mem_size < total_length) {
@@ -134,7 +134,7 @@ void* pools_init(void* large_memory, size_t large_mem_size, pool_type_e pool_aco
 }
 
 
-void* pool_get_element(void* pools, pool_type_e pool_type)
+void* pool_get_element(void* pools, int pool_type)
 {
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
 
@@ -153,18 +153,15 @@ void* pool_get_element(void* pools, pool_type_e pool_type)
 
 static void* pool_get_element_head(void* element)
 {
-    if (element == NULL) {
-        DEBUG_ERROR("%s could not be NULL.", "Element");
+    if ((char*)element - (char*)NULL <= sizeof(element_usr_data_t)) {
+        DEBUG_ERROR("Element is invalid, element = 0x%X.", element);
         return NULL;
     }
 
     void* element_head;
 
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t));
-    if (element_user_data == NULL) {
-        DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
-        element_head = NULL;
-    } else if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
+    if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
         DEBUG_ERROR("Element is a invalid to free, check_value = %d.", element_user_data->check_value);
         element_head = NULL;
     } else {
@@ -174,7 +171,7 @@ static void* pool_get_element_head(void* element)
     return element_head;
 }
 
-return_t pool_free_element(void *pools, pool_type_e pool_type, void* element)
+return_t pool_free_element(void *pools, int pool_type, void* element)
 {
     element_usr_data_t *element_user_data = pool_get_element_head(element);
     if (element_user_data == NULL) {
