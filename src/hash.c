@@ -84,6 +84,14 @@ static void free_node(node_t* node, void* pool_handle)
     return;
 }
 
+int hash_get_bucket_count(int max_entry)
+{
+    int bits = get_bits(max_entry);
+    int buckets_count = get_bucket_number(bits);
+    return buckets_count;
+
+}
+
 int hash_calculate_bucket_size(int max_entry)
 {
     int bits = get_bits(max_entry);
@@ -155,7 +163,8 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
     node->previous_node = NULL;
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
     if (bucket->list == NULL) {
-        bucket->list = (list_t*) malloc(sizeof(list_t));
+        bucket->list = (list_t*) pool_get_element(pool_handle, POOL_TYPE_LIST_T);
+        assert(bucket->list != NULL);
         bucket->list_count = 0;
         list_init(bucket->list);
     }
@@ -254,7 +263,7 @@ static void hash_release(void* hash_table, int is_destroy, void* pool_handle)
         while (NULL != (bucket_node = list_pop_front(bucket->list))) {
             free_node(bucket_node, pool_handle);
         }
-        free(bucket->list);
+        (void)pool_free_element(pool_handle, POOL_TYPE_LIST_T, bucket->list);
         bucket->list = NULL;
         bucket->list_count = 0;
     }

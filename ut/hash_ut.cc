@@ -49,7 +49,7 @@ struct HashFixture {
         pool_attr_t pool_attr[] = {
                 { 1, 1 },
                 { 1, 1 },
-                { 1, 1 },
+                { sizeof(list_t), hash_get_bucket_count(max_entry)},
                 { sizeof(node_t), max_entry},
                 { 1, 1 },
                 { 1, 1 },

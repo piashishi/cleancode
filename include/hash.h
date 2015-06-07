@@ -33,6 +33,8 @@ typedef struct hash_t {
     bucket_t* bucket_list;
 } hash_t;
 
+int hash_get_bucket_count(int max_entry);
+
 int hash_calculate_bucket_size(int max_entry);
 
 /**
