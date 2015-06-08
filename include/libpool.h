@@ -28,10 +28,10 @@ typedef struct element_usr_data_t{
 
 typedef struct pool_attr_t {
     size_t entry_size;
-    int entry_acount;
+    libcache_scale_t entry_acount;
 } pool_attr_t;
 
-typedef enum pool_type_e {
+typedef enum {
     POOL_TYPE_DATA,
     POOL_TYPE_LIBCACHE_T,
     POOL_TYPE_LIST_T,

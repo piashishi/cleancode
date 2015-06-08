@@ -84,24 +84,24 @@ static void free_node(node_t* node, void* pool_handle)
     return;
 }
 
-int hash_get_bucket_count(int max_entry)
+u32 hash_get_bucket_count(u32 max_entry)
 {
-    int bits = get_bits(max_entry);
-    int buckets_count = get_bucket_number(bits);
+    u32 bits = get_bits(max_entry);
+    u32 buckets_count = get_bucket_number(bits);
     return buckets_count;
 
 }
 
-int hash_calculate_bucket_size(int max_entry)
+u32 hash_calculate_bucket_size(u32 max_entry)
 {
-    int bits = get_bits(max_entry);
-    int buckets_count = get_bucket_number(bits);
+    u32 bits = get_bits(max_entry);
+    u32 buckets_count = get_bucket_number(bits);
     size_t bucket_size = (buckets_count + 1) * sizeof(bucket_t);
 
     return bucket_size;
 }
 
-void* hash_init(int max_entry, int key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num, void *pool_handle)
+void* hash_init(u32 max_entry, size_t key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCACHE_KEY_TO_NUMBER* key_to_num, void *pool_handle)
 {
     if (pool_handle == NULL) {
         DEBUG_ERROR("pool_handle can not be NULL.");
