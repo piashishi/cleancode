@@ -24,7 +24,7 @@ typedef struct bucket_t {
 } bucket_t;
 
 typedef struct hash_t {
-    int bits;      //hash key bits
+    int max_entry;
     int buckets_count;
     int entry_count;
     int key_size;
