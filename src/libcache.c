@@ -257,16 +257,7 @@ void* libcache_add(void * libcache, const void* key, const void* src_entry)
 
         // Note: add node into pool element
         if (is_node_new_created) {
-            if (OK != pool_set_reserved_pointer(libcache_node_usr_data->pool_element_ptr, (void*)libcache_list_unlock_node)) {
-                DEBUG_ERROR("add data into cache failed");
-                // free resource
-                list_pop_front(libcache_ptr->list);
-                pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);
-
-                free(libcache_list_unlock_node->usr_data);
-                free(libcache_list_unlock_node);
-                break;
-            }
+            pool_set_reserved_pointer(libcache_node_usr_data->pool_element_ptr, (void*)libcache_list_unlock_node);
         }
 
         // Note: add node into hash
@@ -362,7 +353,6 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
 
     libcache_ret_t return_value = LIBCACHE_FAILURE;
 
-
     do {
         // Note: judge whether entry is existed in cache
         node_t* libcache_node = pool_get_reserved_pointer(entry);
@@ -373,10 +363,10 @@ libcache_ret_t  libcache_delete_entry(void * libcache, void* entry)
 
         // Note: judge whether entry is locked
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
-         if (libcache_node_usr_data->lock_counter > 0) {
-             return_value = LIBCACHE_LOCKED;
-             break;
-         }
+        if (libcache_node_usr_data->lock_counter > 0) {
+            return_value = LIBCACHE_LOCKED;
+            break;
+        }
 
         hash_data_t* hash_data = (hash_data_t*) (libcache_node_usr_data->hash_node_ptr->usr_data);
         return_value = libcache_delete_by_key(libcache_ptr, hash_data->key);
