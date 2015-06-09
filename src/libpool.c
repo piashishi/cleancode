@@ -152,7 +152,7 @@ void* pool_get_element(void* pools, int pool_type)
 static void* pool_get_element_head(void* element)
 {
     if ((char*)element - (char*)NULL <= sizeof(element_usr_data_t)) {
-        DEBUG_ERROR("Element is invalid, element = 0x%X.", element);
+        DEBUG_ERROR("Element is invalid, element = %p.", element);
         return NULL;
     }
 

@@ -3,9 +3,17 @@ UT_SRC= main.cc libpete.cc libpool_ut.cc libcache_test.cc libcache_ut.cc  hash_u
 ver=release
 
 ifeq ($(ver), debug)
-CFLAGS = -g -DDEBUG -fprofile-arcs -ftest-coverage
+CFLAGS = -g -DDEBUG -fprofile-arcs -ftest-coverage -pg
 else
-CFLAGS = -g
+CFLAGS = -O2
+endif
+
+BIT64=x86_64
+ARCH:=$(shell uname -m)
+ifeq ($(ARCH), $(BIT64))
+LIB= ../lib -lUnitTest++_64  -lgcov
+else
+LIB= ../lib -lUnitTest++  -lgcov
 endif
 
 
@@ -21,8 +29,6 @@ SRC_OBJ=$(patsubst %.c,%.o,$(notdir $(SRC)))
 
 INC+= -I../include \
       -I./include
-LIB= ../lib -lUnitTest++  -lgcov
-
 
 .PHONY:clean
 

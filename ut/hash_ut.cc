@@ -49,12 +49,12 @@ struct HashFixture {
         pool_attr_t pool_attr[] = {
                 { 1, 1 },
                 { 1, 1 },
-                { sizeof(list_t), hash_get_bucket_count(max_entry)},
+                { sizeof(list_t), max_entry},
                 { sizeof(node_t), max_entry},
                 { 1, 1 },
                 { sizeof(int), max_entry },
                 { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
-                { hash_calculate_bucket_size(max_entry), 1 }, // POOL_TYPE_BUCKET_T
+                { max_entry*sizeof(bucket_t), 1 }, // POOL_TYPE_BUCKET_T
                 { sizeof(hash_data_t), max_entry },
                 };
 
@@ -115,7 +115,7 @@ TEST_FIXTURE(HashFixture, TestAddHash)
 
     int i = 0;
     uint32_t sum = 0;
-    for (i = 0; i <= g_hash->buckets_count; i++) {
+    for (i = 0; i <= g_hash->max_entry; i++) {
         bucket_t bucket = g_hash->bucket_list[i];
         if (bucket.list != NULL) {
             sum += bucket.list_count;

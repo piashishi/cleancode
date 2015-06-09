@@ -14,6 +14,11 @@
 #include "hash.h"
 #include "libpool.h"
 
+typedef struct cmp_data {
+    const void* key;
+    LIBCACHE_CMP_KEY* kcmp;
+} cmp_data;
+
 static u32 key_to_hash(hash_t* hash, const void* key)
 {
     u32 value = hash->k2num(key);
@@ -22,13 +27,13 @@ static u32 key_to_hash(hash_t* hash, const void* key)
 
 static int find_node(node_t* node, void* usr_data)
 {
-    void* key = usr_data;
-    if (key == NULL) {
-        DEBUG_ERROR("input parameter KEY is null.");
+    cmp_data* data = (cmp_data*) usr_data;
+    if (data == NULL) {
+        DEBUG_ERROR("input parameter  is null.");
         return -1;
     }
     hash_data_t* hd = (hash_data_t*) node->usr_data;
-    return memcpy(key, hd->key);
+    return data->kcmp(data->key, hd->key);
 }
 
 static void free_node(node_t* node, void* pool_handle)
@@ -73,7 +78,7 @@ void* hash_init(u32 max_entry,
     hash->max_entry = max_entry;
 
     int i = 0;
-    while (i <= hash->buckets_count) {
+    while (i < max_entry) {
         hash->bucket_list[i].list_count = 0;
         hash->bucket_list[i].list = NULL;
         i++;
@@ -83,6 +88,7 @@ void* hash_init(u32 max_entry,
 
 void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_handle)
 {
+
     if (hash_table == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s is null.",
                 (NULL == hash_table) ? "hash_table" : "",
@@ -91,7 +97,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
     }
     hash_t* hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code > hash->buckets_count) {
+    if (hash_code >= hash->max_entry) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
@@ -123,6 +129,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
 
     bucket->list_count++;
     hash->entry_count++;
+    DEBUG_ERROR("Add hash key successfully");
     return node;
 }
 
@@ -138,7 +145,7 @@ int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_hand
     hash_t* hash = (hash_t*) hash_table;
 
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code > hash->buckets_count) {
+    if (hash_code >= hash->max_entry) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return -1;
     }
@@ -170,7 +177,7 @@ void* hash_find(void* hash_table, const void* key)
 
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code > hash->buckets_count) {
+    if (hash_code >= hash->max_entry) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
@@ -179,12 +186,12 @@ void* hash_find(void* hash_table, const void* key)
         DEBUG_ERROR("%s is NULL.", "hash_list");
         return NULL;
     } else {
-        to_find_node_t to_find_node;
+        cmp_data to_find_node;
         to_find_node.key = key;
         to_find_node.kcmp = hash->kcmp;
         node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*) &to_find_node);
         if (node == NULL) {
-            DEBUG_ERROR(" %s can't find the key.", "list_foreach_with_usr_data");
+            DEBUG_INFO("hash_find: can't find the key");
             return NULL;
         }
         return node;
@@ -209,7 +216,7 @@ static void hash_release(void* hash_table, int is_destroy, void* pool_handle)
     }
     hash_t* hash = (hash_t*) hash_table;
     int i = 0;
-    for (i = 0; i <= hash->buckets_count; i++) {
+    for (i = 0; i < hash->max_entry; i++) {
         bucket_t* bucket = &(hash->bucket_list[i]);
         node_t *bucket_node;
         while (NULL != (bucket_node = list_pop_front(bucket->list))) {

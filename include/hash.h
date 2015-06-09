@@ -25,17 +25,12 @@ typedef struct bucket_t {
 
 typedef struct hash_t {
     int max_entry;
-    int buckets_count;
     int entry_count;
     int key_size;
     LIBCACHE_CMP_KEY* kcmp;
     LIBCACHE_KEY_TO_NUMBER* k2num;
     bucket_t* bucket_list;
 } hash_t;
-
-u32 hash_get_bucket_count(u32 max_entry);
-
-u32 hash_calculate_bucket_size(u32 max_entry);
 
 /**
  * @fn hash_init
