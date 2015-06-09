@@ -39,15 +39,19 @@ typedef struct list_t
  */
 void list_init(list_t *list);
 
+
 /**
  * @fn list_size
  *
  * @brief Judge whether the list is empty or not.
  * @param [in] list - list pointer
- * @return FALSE  - list is not empty
- * @return TRUE  - list is empty
+ * @return 0  - list is not empty
+ * @return 1  - list is empty
  */
-int list_empty(const list_t *list);
+static inline int list_empty(const list_t *list)
+{
+    return (NULL == list) ? TRUE : (0 == list->total_nodes);
+}
 
 /**
  * @fn list_size
@@ -56,7 +60,10 @@ int list_empty(const list_t *list);
  * @param [in] list - list pointer
  * @return int  - total nodes in the list
  */
-int list_size(const list_t *list);
+static inline int list_size(const list_t *list)
+{
+    return (NULL == list) ? 0 : list->total_nodes;
+}
 
 /**
  * @fn list_front
@@ -65,7 +72,10 @@ int list_size(const list_t *list);
  * @param [in] list - list pointer
  * @return node_t*  - the first elements reference in the list
  */
-node_t* list_front(list_t *list);
+static inline node_t* list_front(list_t *list)
+{
+    return (NULL == list) ? NULL : list->head_node;
+}
 
 /**
  * @fn list_back
@@ -74,7 +84,10 @@ node_t* list_front(list_t *list);
  * @param [in] list - list pointer
  * @return node_t*  - the last elements reference in the list
  */
-node_t* list_back(list_t *list);
+static inline node_t* list_back(list_t *list)
+{
+    return (NULL == list) ? NULL : list->tail_node;
+}
 
 /**
  * @fn list_push_front

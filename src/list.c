@@ -37,55 +37,6 @@ void list_init(list_t *list)
 }
 
 /**
- * @fn list_size
- *
- * @brief Judge whether the list is empty or not.
- * @param [in] list - list pointer
- * @return 0  - list is not empty
- * @return 1  - list is empty
- */
-int list_empty(const list_t *list)
-{
-    return (NULL == list) ? TRUE : (0 == list->total_nodes);
-}
-
-/**
- * @fn list_size
- *
- * @brief Returns the number of elements in the list.
- * @param [in] list - list pointer
- * @return int  - total nodes in the list
- */
-int list_size(const list_t *list)
-{
-    return (NULL == list) ? 0 : list->total_nodes;
-}
-
-/**
- * @fn list_front
- *
- * @brief Returns the first elements in the list.
- * @param [in] list - list pointer
- * @return node_t*  - the first elements reference in the list
- */
-node_t* list_front(list_t *list)
-{
-    return (NULL == list) ? NULL : list->head_node;
-}
-
-/**
- * @fn list_back
- *
- * @brief Returns the last elements in the list.
- * @param [in] list - list pointer
- * @return node_t*  - the last elements reference in the list
- */
-node_t* list_back(list_t *list)
-{
-    return (NULL == list) ? NULL : list->tail_node;
-}
-
-/**
  * @fn list_push_front
  *
  * @brief Insert element at beginning.
