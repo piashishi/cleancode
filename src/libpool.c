@@ -136,35 +136,35 @@ void* pool_get_element(void* pools, int pool_type)
     }
 
     node_t *node = list_pop_back(&pool->free_list);
-    void* element;
-    if (node == NULL) {
-        DEBUG_INFO("Pool have no more free %s.", "node");
-        element = NULL;
-    } else {
-        element = node->usr_data;
-    }
+//    void* element;
+//    if (node == NULL) {
+//        DEBUG_INFO("Pool have no more free %s.", "node");
+//        element = NULL;
+//    } else {
+//        element = node->usr_data;
+//    }
 
-    return element;
+    return (node == NULL) ? NULL : node->usr_data;
 }
 
-static void* pool_get_element_head(void* element)
+static inline void* pool_get_element_head(void* element)
 {
     if ((char*)element - (char*)NULL <= sizeof(element_usr_data_t)) {
         DEBUG_ERROR("Element is invalid, element = %p.", element);
         return NULL;
     }
 
-    void* element_head;
+//    void* element_head;
 
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t));
-    if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
-        DEBUG_ERROR("Element is a invalid to free, check_value = %d.", element_user_data->check_value);
-        element_head = NULL;
-    } else {
-        element_head = element_user_data;
-    }
+//    if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
+//        DEBUG_ERROR("Element is a invalid to free, check_value = %d.", element_user_data->check_value);
+//        element_head = NULL;
+//    } else {
+//        element_head = element_user_data;
+//    }
 
-    return element_head;
+    return (element_user_data->check_value != MAGIC_CHECK_VALUE) ? NULL : element_user_data;
 }
 
 return_t pool_free_element(void *pools, int pool_type, void* element)
