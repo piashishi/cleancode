@@ -16,7 +16,7 @@
 inline u32 key_to_hash(hash_t* hash, const void* key)
 {
     u32 value = hash->k2num(key);
-    return value &(hash->max_entry -1);
+    return value % hash->max_entry;
 }
 
 static void free_node(node_t* node, void* pool_handle)
