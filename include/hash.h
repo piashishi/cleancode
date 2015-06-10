@@ -21,7 +21,7 @@ typedef struct hash_data_t {
 typedef struct bucket_t {
     list_t* list;
     int list_count;
-} bucket_t;
+}__attribute__((packed)) bucket_t;
 
 typedef struct hash_t {
     int max_entry;
@@ -30,7 +30,8 @@ typedef struct hash_t {
     LIBCACHE_CMP_KEY* kcmp;
     LIBCACHE_KEY_TO_NUMBER* k2num;
     bucket_t* bucket_list;
-} hash_t;
+}__attribute__((packed))  hash_t;
+
 
 /**
  * @fn hash_init

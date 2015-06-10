@@ -187,7 +187,7 @@ return_t pool_free_element(void *pools, int pool_type, void* element)
 
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
     list_remove(&pool->busy_list, node);
-    list_push_back(&pool->free_list, node);
+    list_push_front(&pool->free_list, node);
 
     return OK;
 }

@@ -68,12 +68,10 @@ void* libcache_create(
             { sizeof(hash_data_t), max_entry_number},
             };
 
-    assert(sizeof(pool_attr) / sizeof(pool_attr_t) == POOL_TYPE_MAX); // TODO
 
     size_t large_mem_size = pool_caculate_total_length(POOL_TYPE_MAX, pool_attr);
 
     void *large_memory = allocate_memory(large_mem_size);
-    assert(large_memory != NULL);
     if (large_memory == NULL) {
         DEBUG_ERROR("Memory malloc failed!")
     }
@@ -81,13 +79,11 @@ void* libcache_create(
     void * pools = pools_init(large_memory, large_mem_size, POOL_TYPE_MAX, pool_attr);
 
     libcache_t* libcache = (libcache_t*) pool_get_element(pools, POOL_TYPE_LIBCACHE_T);
-    assert(libcache != NULL); // TODO
     libcache->pool = pools;
 
     libcache->hash_table = hash_init(max_entry_number, key_size, cmp_key, key_to_number, libcache->pool);
 
     libcache->list = (list_t*) pool_get_element(pools, POOL_TYPE_LIST_T);
-    assert(libcache->list != NULL); // TODO
     list_init(libcache->list);
 
     libcache->entry_size = entry_size;
@@ -140,6 +136,7 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
         if (NULL == dst_entry) {
             // TODO: lock should be added here
             ((libcache_node_usr_data_t*)libcache_node->usr_data)->lock_counter++;
+
             return_value = ((libcache_node_usr_data_t*)libcache_node->usr_data)->pool_element_ptr;
         } else {
             // Note: copy into dst_entry and return NULL, no lock added too

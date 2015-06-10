@@ -8,26 +8,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <math.h>
 
 #include "hash.h"
 #include "libpool.h"
 
-typedef struct cmp_data {
-    const void* key;
-    LIBCACHE_CMP_KEY* kcmp;
-} cmp_data;
-
-static inline u32 key_to_hash(hash_t* hash, const void* key)
+typedef struct cmp_data
+{
+	const void* key;
+	LIBCACHE_CMP_KEY* kcmp;
+}cmp_data;
+	
+inline u32 key_to_hash(hash_t* hash, const void* key);
+inline u32 key_to_hash(hash_t* hash, const void* key)
 {
     u32 value = hash->k2num(key);
     return value % hash->max_entry;
 }
 
-static inline int find_node(node_t* node, void* usr_data)
+static int find_node(node_t* node, void* usr_data)
 {
-    cmp_data* data = (cmp_data*) usr_data;
+	cmp_data* data = (cmp_data*)usr_data;
     if (data == NULL) {
         DEBUG_ERROR("input parameter  is null.");
         return -1;
@@ -108,10 +109,8 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
         return NULL;
     }
     node->usr_data = (hash_data_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_DATA_T);
-    assert(node->usr_data != NULL);
     hash_data_t* hd = (hash_data_t*) node->usr_data;
     hd->key = pool_get_element(pool_handle, POOL_TYPE_KEY_SIZE);
-    assert(hd->key != NULL);
     memset(hd->key, 0, hash->key_size);
     memcpy(hd->key, key, hash->key_size);
 
@@ -121,7 +120,6 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
     if (bucket->list == NULL) {
         bucket->list = (list_t*) pool_get_element(pool_handle, POOL_TYPE_LIST_T);
-        assert(bucket->list != NULL);
         bucket->list_count = 0;
         list_init(bucket->list);
     }
@@ -129,7 +127,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
 
     bucket->list_count++;
     hash->entry_count++;
-    DEBUG_ERROR("Add hash key successfully");
+    DEBUG_ERROR("Add hash key successfully,hash_code:%d", hash_code);
     return node;
 }
 
@@ -168,12 +166,14 @@ int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_hand
 
 void* hash_find(void* hash_table, const void* key)
 {
+	/*
     if (hash_table == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s is null.",
                 (NULL == hash_table) ? "hash_table" : "",
                 (NULL == key) ? "key" : "");
         return NULL;
     }
+	*/
 
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
@@ -182,20 +182,25 @@ void* hash_find(void* hash_table, const void* key)
         return NULL;
     }
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
-    if (bucket->list == NULL) {
-        DEBUG_ERROR("%s is NULL.", "hash_list");
-        return NULL;
-    } else {
-        cmp_data to_find_node;
-        to_find_node.key = key;
-        to_find_node.kcmp = hash->kcmp;
-        node_t* node = list_foreach_with_usr_data(bucket->list, find_node, (void*) &to_find_node);
+	node_t* node = NULL;
+    if (bucket->list != NULL) {
+		node = bucket->list->head_node;
+		while(node != NULL)
+		{
+			if(!hash->kcmp(key, ((hash_data_t*)node->usr_data)->key))
+			{
+				break;
+			}
+			node = node->next_node;
+		}
+        //node = list_foreach_with_usr_data(bucket->list, find_node, (void*) &to_find_node);
+		/*
         if (node == NULL) {
             DEBUG_INFO("hash_find: can't find the key");
-            return NULL;
         }
-        return node;
+		*/
     }
+    return node;
 }
 
 int hash_get_count(const void* hash_table)

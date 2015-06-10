@@ -18,13 +18,13 @@ typedef struct element_pool_t {
     list_t free_list;
     size_t element_size;
     int element_acount;
-} element_pool_t;
+}__attribute__((packed))  element_pool_t;
 
 typedef struct element_usr_data_t{
     int check_value;
     void* reserved_pointer;
     node_t* to_node;
-}element_usr_data_t;
+} __attribute__((packed)) element_usr_data_t;
 
 typedef struct pool_attr_t {
     size_t entry_size;
