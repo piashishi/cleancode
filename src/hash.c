@@ -13,28 +13,10 @@
 #include "hash.h"
 #include "libpool.h"
 
-typedef struct cmp_data
-{
-	const void* key;
-	LIBCACHE_CMP_KEY* kcmp;
-}cmp_data;
-	
-inline u32 key_to_hash(hash_t* hash, const void* key);
 inline u32 key_to_hash(hash_t* hash, const void* key)
 {
     u32 value = hash->k2num(key);
-    return value % hash->max_entry;
-}
-
-static int find_node(node_t* node, void* usr_data)
-{
-	cmp_data* data = (cmp_data*)usr_data;
-    if (data == NULL) {
-        DEBUG_ERROR("input parameter  is null.");
-        return -1;
-    }
-    hash_data_t* hd = (hash_data_t*) node->usr_data;
-    return data->kcmp(data->key, hd->key);
+    return value &(hash->max_entry -1);
 }
 
 static void free_node(node_t* node, void* pool_handle)
@@ -76,7 +58,7 @@ void* hash_init(u32 max_entry,
     hash->key_size = key_size;
     hash->kcmp = key_cmp;
     hash->k2num = key_to_num;
-    hash->max_entry = max_entry;
+    hash->max_entry = max_entry + 1 ;
 
     int i = 0;
     while (i < max_entry) {
@@ -127,7 +109,7 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
 
     bucket->list_count++;
     hash->entry_count++;
-    DEBUG_ERROR("Add hash key successfully,hash_code:%d", hash_code);
+    DEBUG_INFO("Add hash key successfully,hash_code:%d", hash_code);
     return node;
 }
 
@@ -166,15 +148,6 @@ int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_hand
 
 void* hash_find(void* hash_table, const void* key)
 {
-	/*
-    if (hash_table == NULL || key == NULL) {
-        DEBUG_ERROR("input parameter %s %s is null.",
-                (NULL == hash_table) ? "hash_table" : "",
-                (NULL == key) ? "key" : "");
-        return NULL;
-    }
-	*/
-
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code >= hash->max_entry) {
@@ -182,23 +155,15 @@ void* hash_find(void* hash_table, const void* key)
         return NULL;
     }
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
-	node_t* node = NULL;
+    node_t* node = NULL;
     if (bucket->list != NULL) {
-		node = bucket->list->head_node;
-		while(node != NULL)
-		{
-			if(!hash->kcmp(key, ((hash_data_t*)node->usr_data)->key))
-			{
-				break;
-			}
-			node = node->next_node;
-		}
-        //node = list_foreach_with_usr_data(bucket->list, find_node, (void*) &to_find_node);
-		/*
-        if (node == NULL) {
-            DEBUG_INFO("hash_find: can't find the key");
+        node = bucket->list->head_node;
+        while (node != NULL) {
+            if (!hash->kcmp(key, ((hash_data_t*) node->usr_data)->key)) {
+                break;
+            }
+            node = node->next_node;
         }
-		*/
     }
     return node;
 }
