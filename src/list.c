@@ -285,10 +285,8 @@ node_t * list_foreach(list_t *list, int (*traverse_node_cb)(node_t *node))
     node_t *node_to_be_traversed = list->head_node;
     while (node_to_be_traversed) {
         node_t *next_node_to_be_traversed = node_to_be_traversed->next_node;
-        if (traverse_node_cb) {
-            if (0 == traverse_node_cb(node_to_be_traversed)) {
-                break;
-            }
+        if (traverse_node_cb && (0 == traverse_node_cb(node_to_be_traversed))) {
+            break;
         }
         node_to_be_traversed = next_node_to_be_traversed;
     }
@@ -319,10 +317,8 @@ node_t * list_reverse_foreach(list_t *list, int (*traverse_node_cb)(node_t *node
     node_t *node_to_be_traversed = list->tail_node;
     while (node_to_be_traversed) {
         node_t *next_node_to_be_traversed = node_to_be_traversed->previous_node;
-        if (traverse_node_cb) {
-            if (0 == traverse_node_cb(node_to_be_traversed)) {
-                break;
-            }
+        if (traverse_node_cb && (0 == traverse_node_cb(node_to_be_traversed))) {
+            break;
         }
         node_to_be_traversed = next_node_to_be_traversed;
     }
@@ -353,10 +349,8 @@ node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t
     node_t *node_to_be_traversed = list->head_node;
     while (node_to_be_traversed) {
         node_t *next_node_to_be_traversed = node_to_be_traversed->next_node;
-        if (traverse_node_cb) {
-            if (0 == traverse_node_cb(node_to_be_traversed, usr_data)) {
-                break;
-            }
+        if (traverse_node_cb && (0 == traverse_node_cb(node_to_be_traversed, usr_data))) {
+            break;
         }
         node_to_be_traversed = next_node_to_be_traversed;
     }
