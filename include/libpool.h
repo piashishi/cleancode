@@ -14,7 +14,6 @@ typedef struct pool_cb_t {
 } pool_cb_t;
 
 typedef struct element_pool_t {
-    list_t busy_list;
     list_t free_list;
     size_t element_size;
     int element_acount;

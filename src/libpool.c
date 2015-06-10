@@ -102,7 +102,6 @@ void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, poo
         memset(pool, '\0', sizeof(element_pool_t));
 
         list_init(&pool->free_list);
-        list_init(&pool->busy_list);
 
         pool->element_size = pool_caculate_element_length(pool_attr[i].entry_size);
         pool->element_acount = pool_attr[i].entry_acount;
@@ -142,7 +141,6 @@ void* pool_get_element(void* pools, int pool_type)
         DEBUG_INFO("Pool have no more free %s.", "node");
         element = NULL;
     } else {
-        list_push_back(&pool->busy_list, node);
         element = node->usr_data;
     }
 
@@ -186,7 +184,6 @@ return_t pool_free_element(void *pools, int pool_type, void* element)
     }
 
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
-    list_remove(&pool->busy_list, node);
     list_push_front(&pool->free_list, node);
 
     return OK;
