@@ -52,14 +52,10 @@ void list_push_front(list_t *list, node_t *node)
     }
 
     if (list_empty(list)) {
+        node->previous_node = NULL;
+        node->next_node = NULL;
         list->head_node = node;
         list->tail_node = node;
-
-        list->head_node->previous_node = NULL;
-        list->head_node->next_node = NULL;
-
-        list->tail_node->previous_node = NULL;
-        list->tail_node->next_node = NULL;
     } else {
         list->head_node->previous_node = node;
         node->next_node = list->head_node;
@@ -84,16 +80,12 @@ void list_push_back(list_t *list, node_t *node)
         DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return;
     }
-
     if (list_empty(list)) {
+        node->previous_node = NULL;
+        node->next_node = NULL;
         list->head_node = node;
         list->tail_node = node;
 
-        list->head_node->previous_node = NULL;
-        list->head_node->next_node = NULL;
-
-        list->tail_node->previous_node = NULL;
-        list->tail_node->next_node = NULL;
     } else {
         list->tail_node->next_node = node;
         node->previous_node = list->tail_node;
@@ -347,5 +339,39 @@ node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t
         node_to_be_traversed = next_node_to_be_traversed;
     }
     return node_to_be_traversed;
+}
+
+void list_swap_to_head(list_t *list, node_t *node)
+{
+    if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
+        return;
+    }
+
+    if (list_empty(list)) {
+        DEBUG_INFO("%s is empty.", "list");
+        return;
+    }
+
+    if (1 == list_size(list)) {
+        return;
+    } else if (node == list->head_node) {
+        return;
+    } else if (node == list->tail_node) {
+        node->previous_node->next_node = NULL;
+        list->tail_node = node->previous_node;
+
+        node->next_node = list->head_node;
+        node->previous_node = NULL;
+        list->head_node = node;
+
+    } else {
+        node->previous_node->next_node = node->next_node;
+        node->next_node->previous_node = node->previous_node;
+
+        node->next_node = list->head_node;
+        node->previous_node = NULL;
+        list->head_node = node;
+    }
 }
 
