@@ -93,9 +93,6 @@ TEST(libpool_ut_get_element)
         CHECK_EQUAL(ret, OK);
     }
 
-    ret = pool_free_element(pools, TEST_POOL_TYPE_DATA, entry_stack[i]);
-    CHECK_EQUAL(ret, ERR);
-
     free(pools);
 }
 
