@@ -378,6 +378,7 @@ void list_swap_to_head(list_t *list, node_t *node)
         list->tail_node = node->previous_node;
 
         node->next_node = list->head_node;
+        list->head_node->previous_node = node;
         node->previous_node = NULL;
         list->head_node = node;
 
@@ -386,6 +387,7 @@ void list_swap_to_head(list_t *list, node_t *node)
         node->next_node->previous_node = node->previous_node;
 
         node->next_node = list->head_node;
+        list->head_node->previous_node = node;
         node->previous_node = NULL;
         list->head_node = node;
     }
