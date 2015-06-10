@@ -161,7 +161,7 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
  *  @param node             node in list.
  *  @return 0: traversing over; 1: continue traversing
  */
-static int libcache_get_unlock_node(node_t *node) {
+static inline int libcache_get_unlock_node(node_t *node) {
     return (((libcache_node_usr_data_t*)node->usr_data)->lock_counter) ? 1 : 0;
 }
 
@@ -444,19 +444,9 @@ libcache_ret_t libcache_clean(void * libcache)
     node_t* libcache_node = NULL;
     while (NULL != (libcache_node = list_pop_front(libcache_ptr->list))) {
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
-
-        // TODO: void hash_clean(void* hash)
-
-        return_t ret = pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);
-        if (ret != OK) {
-            DEBUG_ERROR("pool_free_element failed, ret = %d", ret);
-            return LIBCACHE_FAILURE;
-        }
-
-        // Note: remove node of list
+        pool_free_element(libcache_ptr->pool, POOL_TYPE_DATA, libcache_node_usr_data->pool_element_ptr);
         pool_free_element(libcache_ptr->pool, POOL_TYPE_LIBCACHE_NODE_USR_DATA_T, libcache_node_usr_data);
         pool_free_element(libcache_ptr->pool, POOL_TYPE_NODE_T, libcache_node);
-        libcache_node = NULL;
     }
 
     hash_free(libcache_ptr->hash_table, libcache_ptr->pool);
@@ -482,14 +472,10 @@ libcache_ret_t libcache_destroy(void * libcache)
     node_t* libcache_node = NULL;
     while (NULL != (libcache_node = list_pop_front(libcache_ptr->list))) {
         libcache_node_usr_data_t* libcache_node_usr_data = (libcache_node_usr_data_t*)libcache_node->usr_data;
-
         if (libcache_ptr->free_entry != NULL) {
             hash_data_t* hash_data = (hash_data_t*) (libcache_node_usr_data->hash_node_ptr->usr_data);
             libcache_ptr->free_entry(hash_data->key, libcache_node_usr_data->pool_element_ptr);
         }
-
-        // Note: remove node of list
-        libcache_node = NULL;
     }
 
     hash_destroy(libcache_ptr->hash_table, libcache_ptr->pool);
