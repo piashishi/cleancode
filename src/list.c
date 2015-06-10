@@ -51,7 +51,7 @@ void list_push_front(list_t *list, node_t *node)
         return;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         node->previous_node = NULL;
         node->next_node = NULL;
         list->head_node = node;
@@ -80,7 +80,7 @@ void list_push_back(list_t *list, node_t *node)
         DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return;
     }
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         node->previous_node = NULL;
         node->next_node = NULL;
         list->head_node = node;
@@ -111,7 +111,7 @@ int list_remove(list_t *list, node_t *node)
         return FALSE;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return FALSE;
     }
@@ -156,14 +156,14 @@ node_t * list_pop_front(list_t *list)
         return NULL;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
     node_t *node_to_be_removed = list->head_node;
 
-    if (1 == list_size(list)) {
+    if (1 == list->total_nodes) {
         list->head_node = NULL;
         list->tail_node = NULL;
     } else {
@@ -190,14 +190,14 @@ node_t * list_pop_back(list_t *list)
         return NULL;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
     node_t *node_to_be_removed = list->tail_node;
 
-    if (1 == list_size(list)) {
+    if (1 == list->total_nodes) {
         list->head_node = NULL;
         list->tail_node = NULL;
     } else {
@@ -225,7 +225,7 @@ void list_clear(list_t *list, void (*remove_node_cb)(node_t *node))
         return;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return;
     }
@@ -235,7 +235,7 @@ void list_clear(list_t *list, void (*remove_node_cb)(node_t *node))
         if (remove_node_cb) {
             remove_node_cb(node_to_be_removed);
         }
-        node_to_be_removed = list_empty(list) ? NULL : list_pop_front(list);
+        node_to_be_removed = (0 == list->total_nodes) ? NULL : list_pop_front(list);
     }
 }
 
@@ -255,7 +255,7 @@ node_t * list_foreach(list_t *list, int (*traverse_node_cb)(node_t *node))
         return NULL;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
@@ -289,7 +289,7 @@ node_t * list_reverse_foreach(list_t *list, int (*traverse_node_cb)(node_t *node
         return NULL;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
@@ -323,7 +323,7 @@ node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t
         return NULL;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
@@ -348,12 +348,12 @@ void list_swap_to_head(list_t *list, node_t *node)
         return;
     }
 
-    if (list_empty(list)) {
+    if (0 == list->total_nodes) {
         DEBUG_INFO("%s is empty.", "list");
         return;
     }
 
-    if (1 == list_size(list)) {
+    if (1 == list->total_nodes) {
         return;
     } else if (node == list->head_node) {
         return;
