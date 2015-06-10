@@ -9,29 +9,29 @@
 
 typedef int pools_count_t ;
 
-static size_t pool_caculate_pool_head_length(void)
+static inline size_t pool_caculate_pool_head_length(void)
 {
     return sizeof(element_pool_t);
 }
 
-static size_t pool_caculate_nodes_length(int entry_acount)
+static inline size_t pool_caculate_nodes_length(int entry_acount)
 {
     return sizeof(node_t) * entry_acount;
 }
 
-static size_t pool_caculate_element_length(size_t entry_size)
+static inline size_t pool_caculate_element_length(size_t entry_size)
 {
     while ((entry_size) % 4 != 0) {
         (entry_size) = (entry_size) + 1;
     }
     return sizeof(element_usr_data_t) + entry_size;
 }
-static size_t pool_caculate_elements_length(size_t entry_size, int entry_acount)
+static inline size_t pool_caculate_elements_length(size_t entry_size, int entry_acount)
 {
     return pool_caculate_element_length(entry_size) * entry_acount;
 }
 
-static element_pool_t* get_pool_ctrl(void* pools, int index)
+static inline element_pool_t* get_pool_ctrl(void* pools, int index)
 {
     pools_count_t* pool_count =(pools_count_t*)pools;
     if (*pool_count < index) {
@@ -209,15 +209,7 @@ return_t pool_set_reserved_pointer(void* element, void* to_set)
 
 void* pool_get_reserved_pointer(void* element)
 {
-    void *reserved_pointer;
     element_usr_data_t *element_user_data = pool_get_element_head(element);
-    if (element_user_data == NULL) {
-        DEBUG_ERROR("%s is NULL.", "element_user_data");
-        reserved_pointer = NULL;
-    } else {
-        reserved_pointer = element_user_data->reserved_pointer;
-    }
-
-    return reserved_pointer;
+    return (element_user_data == NULL) ? NULL : element_user_data->reserved_pointer;
 }
 

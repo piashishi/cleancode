@@ -19,13 +19,13 @@ typedef struct cmp_data {
     LIBCACHE_CMP_KEY* kcmp;
 } cmp_data;
 
-static u32 key_to_hash(hash_t* hash, const void* key)
+static inline u32 key_to_hash(hash_t* hash, const void* key)
 {
     u32 value = hash->k2num(key);
     return value % hash->max_entry;
 }
 
-static int find_node(node_t* node, void* usr_data)
+static inline int find_node(node_t* node, void* usr_data)
 {
     cmp_data* data = (cmp_data*) usr_data;
     if (data == NULL) {
