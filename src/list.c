@@ -177,6 +177,28 @@ node_t * list_pop_front(list_t *list)
 }
 
 /**
+ * @fn list_pop_front_internal
+ *
+ * @brief Delete first element.
+ * @param [in] list - list pointer
+ * @return  - node to be removed
+ */
+static inline node_t * list_pop_front_internal(list_t *list)
+{
+    node_t *node_to_be_removed = list->head_node;
+    if (1 == list->total_nodes) {
+        list->head_node = NULL;
+        list->tail_node = NULL;
+    } else {
+        list->head_node->next_node->previous_node = NULL;
+        list->head_node = list->head_node->next_node;
+    }
+    list->total_nodes--;
+
+    return node_to_be_removed;
+}
+
+/**
  * @fn list_pop_back
  *
  * @brief Delete last element.
@@ -230,12 +252,12 @@ void list_clear(list_t *list, void (*remove_node_cb)(node_t *node))
         return;
     }
 
-    node_t *node_to_be_removed = list_pop_front(list);
+    node_t *node_to_be_removed = list_pop_front_internal(list);
     while (node_to_be_removed) {
         if (remove_node_cb) {
             remove_node_cb(node_to_be_removed);
         }
-        node_to_be_removed = (0 == list->total_nodes) ? NULL : list_pop_front(list);
+        node_to_be_removed = (0 == list->total_nodes) ? NULL : list_pop_front_internal(list);
     }
 }
 
