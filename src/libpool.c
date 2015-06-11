@@ -7,8 +7,6 @@
 #define INVALID_INDEX (-1)
 #define MAGIC_CHECK_VALUE (13)
 
-typedef int pools_count_t ;
-
 static inline size_t pool_caculate_pool_head_length(void)
 {
     return sizeof(element_pool_t);
@@ -31,18 +29,6 @@ static inline size_t pool_caculate_elements_length(size_t entry_size, int entry_
     return pool_caculate_element_length(entry_size) * entry_acount;
 }
 
-static inline element_pool_t* get_pool_ctrl(void* pools, int index)
-{
-    pools_count_t* pool_count =(pools_count_t*)pools;
-    if (*pool_count < index) {
-        DEBUG_ERROR("invalid index while get pool, index = %d", index);
-        return NULL;
-    }
-
-    element_pool_t** pools_pointer = (element_pool_t**)((char *)pools + sizeof(pools_count_t));
-    return pools_pointer[index];
-}
-
 static size_t pool_caculate_length(size_t entry_size, int entry_acount)
 {
     size_t pool_head_length = pool_caculate_pool_head_length();
@@ -54,7 +40,7 @@ static size_t pool_caculate_length(size_t entry_size, int entry_acount)
 
 size_t pool_caculate_total_length(int pool_acount, pool_attr_t pool_attr[])
 {
-    size_t pools_head_size = sizeof(pools_count_t) + sizeof(element_pool_t*) * pool_acount;
+    size_t pools_head_size = sizeof(element_pool_t*) * pool_acount;
     int i;
     size_t pools_length = 0;
     for (i = 0; i < pool_acount; i++) {
@@ -78,7 +64,7 @@ static element_usr_data_t* pool_get_element_addr(element_pool_t* pool, int j)
     return (element_usr_data_t*) ((char*) elements_start_mem + pool->element_size * j);
 }
 
-// | pools_count_t | element_pool_t* pools[ 0, 1, ... ] |
+// | element_pool_t* pools[ 0, 1, ... ] |
 // | element_pool_t pools 0 | + | node_t 0.0 | node 0.1 | ... | + | element_usr_data_t 0.0 | entry_0.0 | ... |
 // | element_pool_t pools 1 | + | node_t 1.0 | node 1.1 | ... | + | element_usr_data_t 1.0 | entry_1.0 | ... |
 // | ... |
@@ -89,12 +75,8 @@ void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, poo
         return NULL;
     }
 
-    pools_count_t *pools_count = (pools_count_t*)large_memory;
-    *pools_count = pool_acount;
-
-    element_pool_t** pool_pointers = (element_pool_t**) ((char*) large_memory + sizeof(pools_count_t));
-    element_pool_t* pool = (element_pool_t*) ((char*) large_memory + sizeof(pools_count_t)
-            + sizeof(element_pool_t*) * pool_acount);
+    element_pool_t** pool_pointers = (element_pool_t**) ((char*) large_memory);
+    element_pool_t* pool = (element_pool_t*) ((char*) large_memory + sizeof(element_pool_t*) * pool_acount);
     int i;
     for (i = 0; i < pool_acount; i++) {
         pool_pointers[i] = pool;
@@ -128,21 +110,11 @@ void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, poo
 }
 
 
-void* pool_get_element(void* pools, int pool_type)
+inline void* pool_get_element(void* pools, int pool_type)
 {
-    element_pool_t *pool = get_pool_ctrl(pools, pool_type);
-    if (pool == NULL) {
-        return NULL;
-    }
+    element_pool_t *pool = ((element_pool_t**) pools)[pool_type];
 
     node_t *node = list_pop_back(&pool->free_list);
-//    void* element;
-//    if (node == NULL) {
-//        DEBUG_INFO("Pool have no more free %s.", "node");
-//        element = NULL;
-//    } else {
-//        element = node->usr_data;
-//    }
 
     return (node == NULL) ? NULL : node->usr_data;
 }
@@ -154,20 +126,21 @@ static inline void* pool_get_element_head(void* element)
         return NULL;
     }
 
-    element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t));
+    element_usr_data_t *element_user_data = ((element_usr_data_t*) element - 1);
     return (element_user_data->check_value != MAGIC_CHECK_VALUE) ? NULL : element_user_data;
 }
 
-void pool_free_element(void *pools, int pool_type, void* element)
+inline void pool_free_element(void *pools, int pool_type, void* element)
 {
-    element_usr_data_t *element_user_data = pool_get_element_head(element);
-    if (element_user_data == NULL) {
-        DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
+    if (element == NULL) {
         return;
     }
 
+    element_usr_data_t *element_user_data = ((element_usr_data_t*) element - 1);
+
     element_user_data->reserved_pointer = NULL;
-    element_pool_t *pool = get_pool_ctrl(pools, pool_type);
+
+    element_pool_t *pool = ((element_pool_t**) pools)[pool_type];
     list_push_front(&pool->free_list, element_user_data->to_node);
 }
 
