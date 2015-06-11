@@ -5,7 +5,7 @@ ver=release
 ifeq ($(ver), debug)
 CFLAGS = -g -DDEBUG -fprofile-arcs -ftest-coverage -pg
 else
-CFLAGS = -O2
+CFLAGS = -O2 -pg
 endif
 
 BIT64=x86_64
