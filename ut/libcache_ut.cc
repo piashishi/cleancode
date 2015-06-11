@@ -87,6 +87,14 @@ TEST_FIXTURE(LibCacheFixture, TestAdd)
 
     ret = libcache_clean(g_cache);
     CHECK(ret == LIBCACHE_SUCCESS);
+
+    ret = libcache_destroy(g_cache);
+    CHECK(ret == LIBCACHE_SUCCESS);
+
+    g_cache = libcache_create(10, sizeof(int), sizeof(int), NULL, NULL, NULL, test_key_com, test_key_to_int);
+    CHECK(g_cache == NULL);
+
+
 }
 
 
@@ -112,9 +120,24 @@ TEST_FIXTURE(LibCacheFixture, TestLookup)
     int key2 = 300;
     int entry2 = 3000;
 
-    //check all node were locked, no anymore node.
-    int* value2 = (int*) libcache_add(g_cache, &key2, &entry2);
+    //check cache_ptr is NULL
+    int* value2 = (int*) libcache_add(NULL, &key2, &entry2);
     CHECK(value2 == NULL);
+
+    //check key is NULL
+    value2 = (int*) libcache_add(g_cache, NULL, &entry2);
+    CHECK(value2 == NULL);
+
+    value2 = (int*) libcache_add(NULL, &key2, &entry2);
+    CHECK(value2 == NULL);
+
+    value2 = (int*) libcache_add(g_cache, NULL, &entry2);
+    CHECK(value2 == NULL);
+
+    //check all node were locked, no anymore node.
+    value2 = (int*) libcache_add(g_cache, &key2, &entry2);
+    CHECK(value2 == NULL);
+
 
     libcache_ret_t ret = LIBCACHE_SUCCESS;
     for (i = 0; i <= g_max_entry_number; i++) {
@@ -148,7 +171,14 @@ TEST_FIXTURE(LibCacheFixture, TestDelete)
     libcache_scale_t count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(count, 3);
 
-    libcache_ret_t ret = libcache_delete_by_key(g_cache, &key);
+
+    libcache_ret_t ret = libcache_delete_by_key(NULL, &key);
+    CHECK_EQUAL(ret, LIBCACHE_FAILURE);
+
+    ret = libcache_delete_by_key(g_cache, NULL);
+    CHECK_EQUAL(ret, LIBCACHE_FAILURE);
+
+    ret = libcache_delete_by_key(g_cache, &key);
     CHECK_EQUAL(ret, LIBCACHE_SUCCESS);
     count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(count, 2);
@@ -173,6 +203,9 @@ TEST_FIXTURE(LibCacheFixture, TestDelete)
     CHECK_EQUAL(ret, LIBCACHE_LOCKED);
     count = libcache_get_entry_number(g_cache);
     CHECK_EQUAL(count, 1);
+
+    ret = libcache_delete_entry(NULL, value3); //TODO: can be entry3 ?
+    CHECK_EQUAL(ret, LIBCACHE_FAILURE);
 
     ret = libcache_delete_entry(g_cache, value3); //TODO: can be entry3 ?
     CHECK_EQUAL(ret, LIBCACHE_LOCKED);
