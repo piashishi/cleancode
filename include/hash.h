@@ -16,12 +16,12 @@
 typedef struct hash_data_t {
     void* key;
     char* cache_node_ptr;
-} hash_data_t;
+}__attribute__((aligned(8))) hash_data_t;
 
 typedef struct bucket_t {
     list_t* list;
     int list_count;
-}__attribute__((packed)) bucket_t;
+}__attribute__((aligned(8))) bucket_t;
 
 typedef struct hash_t {
     int max_entry;
@@ -30,7 +30,7 @@ typedef struct hash_t {
     LIBCACHE_CMP_KEY* kcmp;
     LIBCACHE_KEY_TO_NUMBER* k2num;
     bucket_t* bucket_list;
-}__attribute__((packed))  hash_t;
+}__attribute__((aligned(8)))  hash_t;
 
 
 /**
@@ -56,7 +56,7 @@ void* hash_init(u32 max_entry, size_t key_size, LIBCACHE_CMP_KEY* key_cmp, LIBCA
  * @return NULL  - when out of memory.
  * @return pointer to hash list node
  */
-void* hash_add(void* hash, const void* key, void* cache_node, void* pool_handle);
+void* hash_add(void* hash, const void* key, void* node, void* cache_node, void* pool_handle);
 
 /**
  * @fn hash_del
@@ -68,7 +68,7 @@ void* hash_add(void* hash, const void* key, void* cache_node, void* pool_handle)
  * @return 0  - when delete successfully
  * @return -1 when delete fail
  */
-int hash_del(void* hash, const void* key, void* hash_node, void* pool_handle);
+void* hash_del(void* hash, const void* key, void* hash_node, void* pool_handle);
 
 /**
  * @fn hash_find
@@ -106,6 +106,8 @@ void hash_free(void* hash, void* pool_handle);
  * @param [in] hash - hash table
  */
 void hash_destroy(void* hash, void* pool_handle);
+
+ void hash_free_node(node_t* node, void* pool_handle);
 
 #endif
 

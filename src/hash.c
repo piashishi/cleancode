@@ -13,13 +13,16 @@
 #include "hash.h"
 #include "libpool.h"
 
+#define HASH_BITS 16
+#define GOLDEN_RATIO_PRIME_32 0x9e370001UL
+
 inline u32 key_to_hash(hash_t* hash, const void* key)
 {
-    u32 value = hash->k2num(key);
-    return value % hash->max_entry;
+	u32 val = (hash->k2num(key)) * GOLDEN_RATIO_PRIME_32;
+	return val >> (32 - HASH_BITS);
 }
 
-static void free_node(node_t* node, void* pool_handle)
+void hash_free_node(node_t* node, void* pool_handle)
 {
     if (node == NULL || pool_handle == NULL) {
         DEBUG_ERROR("input parameter %s is null.", "node");
@@ -58,7 +61,7 @@ void* hash_init(u32 max_entry,
     hash->key_size = key_size;
     hash->kcmp = key_cmp;
     hash->k2num = key_to_num;
-    hash->max_entry = max_entry + 1 ;
+    hash->max_entry = 65536;
 
     int i = 0;
     while (i < max_entry) {
@@ -69,7 +72,7 @@ void* hash_init(u32 max_entry,
     return hash;
 }
 
-void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_handle)
+void* hash_add(void* hash_table, const void* key, void* hash_node, void* cache_node, void* pool_handle)
 {
 
     if (hash_table == NULL || key == NULL) {
@@ -85,18 +88,17 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
         return NULL;
     }
 
-    node_t* node = (node_t*) pool_get_element(pool_handle, POOL_TYPE_NODE_T);
+    node_t* node = (node_t*)hash_node;
     if (node == NULL) {
-        DEBUG_ERROR("%s get memory failed, out of memory!", "hash");
-        return NULL;
+        node = (node_t*) pool_get_element(pool_handle, POOL_TYPE_NODE_T);
+        node->usr_data = (hash_data_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_DATA_T);
+        ((hash_data_t*) node->usr_data)->key = pool_get_element(pool_handle, POOL_TYPE_KEY_SIZE);
     }
-    node->usr_data = (hash_data_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_DATA_T);
-    hash_data_t* hd = (hash_data_t*) node->usr_data;
-    hd->key = pool_get_element(pool_handle, POOL_TYPE_KEY_SIZE);
-    memset(hd->key, 0, hash->key_size);
-    memcpy(hd->key, key, hash->key_size);
 
-    hd->cache_node_ptr = cache_node;
+    memset(((hash_data_t*) node->usr_data)->key, 0, hash->key_size);
+    memcpy(((hash_data_t*) node->usr_data)->key, key, hash->key_size);
+
+    ((hash_data_t*) node->usr_data)->cache_node_ptr = cache_node;
     node->next_node = NULL;
     node->previous_node = NULL;
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
@@ -113,38 +115,36 @@ void* hash_add(void* hash_table, const void* key, void* cache_node, void* pool_h
     return node;
 }
 
-int hash_del(void* hash_table, const void* key, void* hash_node, void* pool_handle)
+void* hash_del(void* hash_table, const void* key, void* hash_node, void* pool_handle)
 {
     if (hash_table == NULL || hash_node == NULL || key == NULL) {
         DEBUG_ERROR("input parameter %s %s %s is null.",
                 (NULL == hash_table) ? "hash_table" : "",
                 (NULL == key) ? "key" : "",
                 (NULL == hash_node) ? "hash_node" : "");
-        return -1;
+        return NULL;
     }
-    hash_t* hash = (hash_t*) hash_table;
 
+	hash_t* hash = (hash_t*)hash_table;
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code >= hash->max_entry) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
-        return -1;
+        return NULL;
     }
 
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
     if (bucket->list == NULL) {
         DEBUG_ERROR("%s is NULL.", "hash_list");
-        return -1;
+        return NULL;
     } else {
         node_t* node = (node_t*) hash_node;
         list_remove(bucket->list, node);
-        (void) pool_free_element(pool_handle, POOL_TYPE_KEY_SIZE, ((hash_data_t*) node->usr_data)->key);
-        (void) pool_free_element(pool_handle, POOL_TYPE_HASH_DATA_T, node->usr_data);
-        (void) pool_free_element(pool_handle, POOL_TYPE_NODE_T, node);
     }
     bucket->list_count--;
     hash->entry_count--;
-    return 0;
+    return hash_node;
 }
+
 
 void* hash_find(void* hash_table, const void* key)
 {
@@ -186,16 +186,18 @@ static void hash_release(void* hash_table, int is_destroy, void* pool_handle)
     }
     hash_t* hash = (hash_t*) hash_table;
     int i = 0;
-    for (i = 0; i < hash->max_entry; i++) {
-        bucket_t* bucket = &(hash->bucket_list[i]);
-        node_t *bucket_node;
-        while (NULL != (bucket_node = list_pop_front(bucket->list))) {
-            free_node(bucket_node, pool_handle);
-        }
-        (void) pool_free_element(pool_handle, POOL_TYPE_LIST_T, bucket->list);
-        bucket->list = NULL;
-        bucket->list_count = 0;
-    }
+	for (i = 0; i < hash->max_entry; i++) {
+		bucket_t* bucket = &(hash->bucket_list[i]);
+		node_t *bucket_node;
+		if(bucket->list != NULL) {
+			while (NULL != (bucket_node = list_pop_front(bucket->list))) {
+				hash_free_node(bucket_node, pool_handle);
+			}
+			(void) pool_free_element(pool_handle, POOL_TYPE_LIST_T, bucket->list);
+			bucket->list = NULL;
+			bucket->list_count = 0;
+		}
+	}
     if (is_destroy) {
         pool_free_element(pool_handle, POOL_TYPE_BUCKET_T, hash->bucket_list);
         pool_free_element(pool_handle, POOL_TYPE_HASH_T, hash);

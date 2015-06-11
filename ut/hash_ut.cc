@@ -92,7 +92,7 @@ struct HashFixture {
             td->key = (int*) malloc(sizeof(int));
             memcpy(td->key, &i, sizeof(int));
 
-            hash_entry = (node_t*) hash_add(g_hash, &i, list_entry, pools);
+            hash_entry = (node_t*) hash_add(g_hash, &i, NULL,  list_entry, pools);
             if (hash_entry == NULL) {
                 printf("insert to hash failed!\n");
                 return -1;
@@ -166,8 +166,8 @@ TEST_FIXTURE(HashFixture, TestDelHash)
     node_t* node2 = list_pop_front(list);
     test_data_t* td = (test_data_t*) node2->usr_data;
 
-    ret = hash_del(g_hash, &value, td->entry, pools);
-    CHECK(ret == 0);
+    void* del_node = hash_del(g_hash, &value, td->entry, pools);
+    CHECK(del_node == node);
 
     node = (node_t*) hash_find(g_hash, &value);
     CHECK(node == NULL);

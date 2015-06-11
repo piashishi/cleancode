@@ -21,8 +21,8 @@ static inline size_t pool_caculate_nodes_length(int entry_acount)
 
 static inline size_t pool_caculate_element_length(size_t entry_size)
 {
-    while ((entry_size) % 4 != 0) {
-        (entry_size) = (entry_size) + 1;
+    while ((entry_size) % 8 != 0) {
+        entry_size += 1;
     }
     return sizeof(element_usr_data_t) + entry_size;
 }

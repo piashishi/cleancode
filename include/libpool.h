@@ -15,9 +15,9 @@ typedef struct pool_cb_t {
 
 typedef struct element_pool_t {
     list_t free_list;
-    size_t element_size;
-    int element_acount;
-}__attribute__((packed))  element_pool_t;
+    long long  element_size;
+    long long element_acount;
+} __attribute__((packed)) element_pool_t;
 
 typedef struct element_usr_data_t{
     int check_value;

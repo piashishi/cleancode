@@ -21,14 +21,14 @@ typedef struct node_t
     void *usr_data;
     struct node_t *previous_node; /* pointer to previous child */
     struct node_t *next_node; /* pointer to next child */
-}node_t;
+}__attribute__((aligned(8))) node_t;
 
 typedef struct list_t
 {
     unsigned int total_nodes;
     node_t *head_node;
     node_t *tail_node;
-}list_t;
+} __attribute__((aligned(8))) list_t;
 
 
 /**

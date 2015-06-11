@@ -165,6 +165,10 @@ libcache_test_deletion(void * libcache)
                     key.imsi.val.imsi64bit);
             return TEST_FAILURE;
         }
+		if(key.imsi.val.imsi64bit == 0)
+		{
+			break;
+		}
         key.imsi.val.imsi64bit--;
     }
     while (1);
