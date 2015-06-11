@@ -4,13 +4,8 @@
 #include "list.h"
 #include "libpool.h"
 
-#define INVALID_INDEX (-1)
-#define MAGIC_CHECK_VALUE (13)
-
-static inline size_t pool_caculate_pool_head_length(void)
-{
-    return sizeof(element_pool_t);
-}
+#define MAGIC_CHECK_VALUE (89757)
+#define POOL_HEAD_LENGTH  (sizeof(element_pool_t))
 
 static inline size_t pool_caculate_nodes_length(int entry_acount)
 {
@@ -24,6 +19,7 @@ static inline size_t pool_caculate_element_length(size_t entry_size)
     }
     return sizeof(element_usr_data_t) + entry_size;
 }
+
 static inline size_t pool_caculate_elements_length(size_t entry_size, int entry_acount)
 {
     return pool_caculate_element_length(entry_size) * entry_acount;
@@ -31,7 +27,7 @@ static inline size_t pool_caculate_elements_length(size_t entry_size, int entry_
 
 static size_t pool_caculate_length(size_t entry_size, int entry_acount)
 {
-    size_t pool_head_length = pool_caculate_pool_head_length();
+    size_t pool_head_length = POOL_HEAD_LENGTH;
     size_t nodes_length = pool_caculate_nodes_length(entry_acount);
     size_t elements_length = pool_caculate_elements_length(entry_size, entry_acount);
 
@@ -52,13 +48,13 @@ size_t pool_caculate_total_length(int pool_acount, pool_attr_t pool_attr[])
 }
 static node_t* pool_get_node_addr(element_pool_t* pool, int j)
 {
-    node_t* nodes_start_mem = (node_t*)((char*) pool + pool_caculate_pool_head_length());
+    node_t* nodes_start_mem = (node_t*)((char*) pool + POOL_HEAD_LENGTH);
     return nodes_start_mem + j;
 }
 
 static element_usr_data_t* pool_get_element_addr(element_pool_t* pool, int j)
 {
-    element_usr_data_t* elements_start_mem = (element_usr_data_t*) ((char*) pool + pool_caculate_pool_head_length()
+    element_usr_data_t* elements_start_mem = (element_usr_data_t*) ((char*) pool + POOL_HEAD_LENGTH
             + pool_caculate_nodes_length(pool->element_acount));
 
     return (element_usr_data_t*) ((char*) elements_start_mem + pool->element_size * j);
@@ -97,13 +93,13 @@ void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, poo
             elements_addr->reserved_pointer = NULL;
             elements_addr->to_node = node;
 
-            node->usr_data = (void*)(elements_addr + 1); //
+            node->usr_data = (void*) (elements_addr + 1);
 
             list_push_back(&pool->free_list, node);
         }
 
         size_t pool_length = pool_caculate_length(pool_attr[i].entry_size, pool_attr[i].entry_acount);
-        pool = (element_pool_t*)((char*)pool + pool_length);
+        pool = (element_pool_t*) ((char*) pool + pool_length);
     }
 
     return (element_pool_t**) large_memory;
@@ -121,7 +117,7 @@ inline void* pool_get_element(void* pools, int pool_type)
 
 static inline void* pool_get_element_head(void* element)
 {
-    if ((char*)element - (char*)NULL <= sizeof(element_usr_data_t)) {
+    if ((char*) element - (char*) NULL <= sizeof(element_usr_data_t)) {
         DEBUG_ERROR("Element is invalid, element = %p.", element);
         return NULL;
     }
