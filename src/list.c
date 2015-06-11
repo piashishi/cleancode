@@ -18,25 +18,6 @@
 #endif
 
 /**
- * @fn list_init
- *
- * @brief Init list.
- * @param [in] list - list pointer
- * @return - none
- */
-void list_init(list_t *list)
-{
-    if (NULL == list) {
-        DEBUG_ERROR("input parameter %s is null.", "list");
-        return;
-    }
-
-    list->total_nodes = 0;
-    list->head_node = NULL;
-    list->tail_node = NULL;
-}
-
-/**
  * @fn list_push_front
  *
  * @brief Insert element at beginning.
@@ -357,6 +338,14 @@ node_t * list_foreach_with_usr_data(list_t *list, int (*traverse_node_cb)(node_t
     return node_to_be_traversed;
 }
 
+/**
+ * @fn list_swap_to_head
+ *
+ * @brief swap element.
+ * @param [in] list - list pointer
+ * @param [in] node - node to be removed
+ * @return
+ */
 void list_swap_to_head(list_t *list, node_t *node)
 {
     if (NULL == list) {

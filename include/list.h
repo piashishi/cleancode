@@ -8,6 +8,9 @@
 #ifndef LIBLIST_H_
 #define LIBLIST_H_
 
+#include <string.h>
+#include <stdio.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,7 +40,15 @@ typedef struct list_t
  * @param [in] list - list pointer
  * @return - none
  */
-void list_init(list_t *list);
+static inline void list_init(list_t *list)
+{
+    if (NULL == list) {
+        return;
+    }
+    list->total_nodes = 0;
+    list->head_node = NULL;
+    list->tail_node = NULL;
+}
 
 
 /**
@@ -179,6 +190,16 @@ void list_clear(list_t *list, void (*remove_node_cb)(node_t *node));
  * @return  node_t * - the node to be found
  */
 node_t * list_reverse_foreach(list_t *list, int (*traverse_node_cb)(node_t *node));
+
+/**
+ * @fn list_swap_to_head
+ *
+ * @brief swap element.
+ * @param [in] list - list pointer
+ * @param [in] node - node to be removed
+ * @return
+ */
+void list_swap_to_head(list_t *list, node_t *node);
 
 #ifdef __cplusplus
 }
