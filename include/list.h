@@ -333,7 +333,29 @@ node_t * list_reverse_foreach(list_t *list, int (*traverse_node_cb)(node_t *node
  * @param [in] node - node to be removed
  * @return
  */
-void list_swap_to_head(list_t *list, node_t *node);
+static inline void list_swap_to_head(list_t *list, node_t *node)
+{
+    if (1 == list->total_nodes) {
+        return;
+    } else if (node == list->head_node) {
+        return;
+    } else if (node == list->tail_node) {
+        node->previous_node->next_node = NULL;
+        list->tail_node = node->previous_node;
+        node->next_node = list->head_node;
+        list->head_node->previous_node = node;
+        node->previous_node = NULL;
+        list->head_node = node;
+    } else {
+        node->previous_node->next_node = node->next_node;
+        node->next_node->previous_node = node->previous_node;
+
+        node->next_node = list->head_node;
+        list->head_node->previous_node = node;
+        node->previous_node = NULL;
+        list->head_node = node;
+    }
+}
 
 #ifdef __cplusplus
 }
