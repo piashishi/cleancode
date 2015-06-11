@@ -20,9 +20,9 @@ typedef struct element_pool_t {
 } __attribute__((packed)) element_pool_t;
 
 typedef struct element_usr_data_t{
-    node_t* to_node;
-    void* reserved_pointer;
     int check_value;
+    void* reserved_pointer;
+    node_t* to_node;
 } __attribute__((packed)) element_usr_data_t;
 
 typedef struct pool_attr_t {
@@ -45,25 +45,33 @@ typedef enum {
 
 size_t pool_caculate_total_length(int pool_acount, pool_attr_t pool_attr[]);
 
+void* pools_init(void* large_memory, size_t large_mem_size, int pool_acount, pool_attr_t pool_attr[]);
+
 /**
- * @fn pools_init
+ * @fn pool_init
  *
  * @brief Init memory to pool..
- * @param [in] large_memory   - a memory pointer
- * @param [in] large_mem_size - size of the memory
- * @param [in] pool_count     - count of pools
- * @param [in] pool_attr      - describe the entry size and entry count of pool
- * @return -  pools pointer, return NULL when failed
+ * @param [in] size - pool size
+ * @param allocate_memory       function to allocate memory for this cache object, e.g. malloc().
+ * @param free_memory           function to free whole cache object, e.g. free().
+ * @return -  pool pointer, return NULL when failed
  */
-void* pools_init(void* large_memory, size_t large_mem_size, int pool_count, pool_attr_t pool_attr[]);
 
+/**
+ * @fn pool_init_element_pool
+ *
+ * @brief Init element pool.
+ * @param [in] pool - pool pointer, should initiated by pool_init first.
+ * @param [in] entry_size  - entry size
+ * @param [in] entry_count - entry count
+ * @return -  OK / ERR
+ */
 
 /**
  * @fn pool_get_element
  *
  * @brief get an unused element memory.
- * @param [in] pools     - pools handle
- * @param [in] pool_type - the type of pool
+ * @param [in] pool - pool pointer, should initiated by pool_init first.
  * @return -  a point to element memory (NULL for failed)
  */
 void* pool_get_element(void* pools, int pool_type);
@@ -72,29 +80,21 @@ void* pool_get_element(void* pools, int pool_type);
  * @fn pool_free_element
  *
  * @brief free an used element memory.
- * @param [in] pools     - pools handle
- * @param [in] pool_type - the type of pool
- * @param [in] element   - the element to free
+ * @param [in] pool - pool pointer, should initiated by pool_init first.
+ * @param [in] element  - element address
+ * @return -  OK / ERR
  */
 void pool_free_element(void* pools, int pool_type, void* element);
 
 /**
- * @fn pool_set_reserved_pointer
+ * @fn pool_get_key_by_element_address
  *
- * @brief set a pointer value to the reservation of element
- * @param [in] element   - the element address
- * @param [in] to_set    - the pointer to set
- * @return -  OK / ERR
+ * @brief get key by element memory.
+ * @param [in] pool - pool pointer, should initiated by pool_init first.
+ * @param [in] element  - element address
+ * @return - a point to element memory(NULL: not found or parameter error)
  */
-
 return_t pool_set_reserved_pointer(void* element, void* to_set);
-/**
- * @fn pool_get_reserved_pointer
- *
- * @brief get a pointer value to the reservation of element
- * @param [in] element   - the element address
- * @return - the pointer
- */
 void* pool_get_reserved_pointer(void* element);
 
 #ifdef __cplusplus

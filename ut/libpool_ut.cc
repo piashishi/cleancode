@@ -78,8 +78,14 @@ TEST(libpool_ut_get_element)
         entry = pool_get_element(pools, TEST_POOL_TYPE_DATA);
         CHECK_EQUAL(entry != (void* )NULL, TRUE);
 
+        // printf("entry[%d] = %X\n", i, entry);
         entry_stack[i] = entry;
     }
+
+    // printf("entry[%d] = %X\n", i, entry);
+
+    entry = pool_get_element(pools, TEST_POOL_TYPE_DATA);
+    CHECK_EQUAL(entry == (void* )NULL, TRUE);
 
     return_t ret;
     for (i = 0; i < entry_count; i++) {
