@@ -10,13 +10,11 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "libcache_def.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define TRUE  1
-#define FALSE 0
 
 typedef struct node_t
 {
@@ -108,7 +106,28 @@ static inline node_t* list_back(list_t *list)
  * @param [in] node - node to be inserted
  * @return  - none
  */
-void list_push_front(list_t *list, node_t *node);
+//void list_push_front(list_t *list, node_t *node);
+static inline void list_push_front(list_t *list, node_t *node)
+{
+    if (NULL == list || NULL == node) {
+        DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
+        return;
+    }
+
+    if (0 == list->total_nodes) {
+        node->previous_node = NULL;
+        node->next_node = NULL;
+        list->head_node = node;
+        list->tail_node = node;
+    } else {
+        list->head_node->previous_node = node;
+        node->next_node = list->head_node;
+        node->previous_node = NULL;
+        list->head_node = node;
+    }
+
+    list->total_nodes++;
+}
 
 /**
  * @fn list_push_back
@@ -118,7 +137,27 @@ void list_push_front(list_t *list, node_t *node);
  * @param [in] node - node to be inserted
  * @return  - none
  */
-void list_push_back(list_t *list, node_t *node);
+static inline void list_push_back(list_t *list, node_t *node)
+{
+    if (NULL == list || NULL == node) {
+        DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
+        return;
+    }
+    if (0 == list->total_nodes) {
+        node->previous_node = NULL;
+        node->next_node = NULL;
+        list->head_node = node;
+        list->tail_node = node;
+
+    } else {
+        list->tail_node->next_node = node;
+        node->previous_node = list->tail_node;
+        node->next_node = NULL;
+        list->tail_node = node;
+    }
+
+    list->total_nodes++;
+}
 
 /**
  * @fn list_remove
@@ -128,7 +167,51 @@ void list_push_back(list_t *list, node_t *node);
  * @param [in] node - node to be removed
  * @return  int - TRUE: removed; FALSE: error or node not found
  */
-int list_remove(list_t *list, node_t *node);
+/**
+ * @fn list_remove
+ *
+ * @brief remove element.
+ * @param [in] list - list pointer
+ * @param [in] node - node to be removed
+ * @return  int - TRUE: removed; FALSE: error or node not found
+ */
+static inline int list_remove(list_t *list, node_t *node)
+{
+    if (NULL == list || NULL == node) {
+        DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
+        return FALSE;
+    }
+
+    if (0 == list->total_nodes) {
+        DEBUG_INFO("%s is empty.", "list");
+        return FALSE;
+    }
+
+    if (node == list->head_node) {
+        if (list->head_node->next_node) {
+            list->head_node->next_node->previous_node = NULL;
+            list->head_node = list->head_node->next_node;
+        } else {
+            list->head_node = NULL;
+            list->tail_node = NULL;
+        }
+    } else if (node == list->tail_node) {
+        if (list->tail_node->previous_node) {
+            list->tail_node->previous_node->next_node = NULL;
+            list->tail_node = list->tail_node->previous_node;
+        } else {
+            list->head_node = NULL;
+            list->tail_node = NULL;
+        }
+    } else {
+        node->previous_node->next_node = node->next_node;
+        node->next_node->previous_node = node->previous_node;
+    }
+
+    list->total_nodes--;
+
+    return TRUE;
+}
 
 /**
  * @fn list_pop_front
@@ -137,7 +220,32 @@ int list_remove(list_t *list, node_t *node);
  * @param [in] list - list pointer
  * @return  - node to be removed
  */
-node_t * list_pop_front(list_t *list);
+static inline node_t * list_pop_front(list_t *list)
+{
+    if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
+        return NULL;
+    }
+
+    if (0 == list->total_nodes) {
+        DEBUG_INFO("%s is empty.", "list");
+        return NULL;
+    }
+
+    node_t *node_to_be_removed = list->head_node;
+
+    if (1 == list->total_nodes) {
+        list->head_node = NULL;
+        list->tail_node = NULL;
+    } else {
+        list->head_node->next_node->previous_node = NULL;
+        list->head_node = list->head_node->next_node;
+    }
+
+    list->total_nodes--;
+
+    return node_to_be_removed;
+}
 
 /**
  * @fn list_pop_back
@@ -146,7 +254,33 @@ node_t * list_pop_front(list_t *list);
  * @param [in] list - list pointer
  * @return  - node to be removed
  */
-node_t * list_pop_back(list_t *list);
+//node_t * list_pop_back(list_t *list);
+static inline node_t * list_pop_back(list_t *list)
+{
+    if (NULL == list) {
+        DEBUG_ERROR("input parameter %s is null.", "list");
+        return NULL;
+    }
+
+    if (0 == list->total_nodes) {
+        DEBUG_INFO("%s is empty.", "list");
+        return NULL;
+    }
+
+    node_t *node_to_be_removed = list->tail_node;
+
+    if (1 == list->total_nodes) {
+        list->head_node = NULL;
+        list->tail_node = NULL;
+    } else {
+        list->tail_node->previous_node->next_node = NULL;
+        list->tail_node = list->tail_node->previous_node;
+    }
+
+    list->total_nodes--;
+
+    return node_to_be_removed;
+}
 
 /**
  * @fn list_foreach
