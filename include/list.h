@@ -40,7 +40,7 @@ typedef struct list_t
  */
 static inline void list_init(list_t *list)
 {
-    if (NULL == list) {
+    if (unlikely(NULL == list)) {
         return;
     }
     list->total_nodes = 0;
@@ -109,7 +109,7 @@ static inline node_t* list_back(list_t *list)
 //void list_push_front(list_t *list, node_t *node);
 static inline void list_push_front(list_t *list, node_t *node)
 {
-    if (NULL == list || NULL == node) {
+    if (unlikely(NULL == list || NULL == node)) {
         DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return;
     }
@@ -139,7 +139,7 @@ static inline void list_push_front(list_t *list, node_t *node)
  */
 static inline void list_push_back(list_t *list, node_t *node)
 {
-    if (NULL == list || NULL == node) {
+    if (unlikely(NULL == list || NULL == node)) {
         DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return;
     }
@@ -177,7 +177,7 @@ static inline void list_push_back(list_t *list, node_t *node)
  */
 static inline int list_remove(list_t *list, node_t *node)
 {
-    if (NULL == list || NULL == node) {
+    if (unlikely(NULL == list || NULL == node)) {
         DEBUG_ERROR("input parameter %s %s is null.", (NULL == list) ? "list" : "", (NULL == node) ? "node" : "");
         return FALSE;
     }
@@ -222,19 +222,19 @@ static inline int list_remove(list_t *list, node_t *node)
  */
 static inline node_t * list_pop_front(list_t *list)
 {
-    if (NULL == list) {
+    if (unlikely(NULL == list)) {
         DEBUG_ERROR("input parameter %s is null.", "list");
         return NULL;
     }
 
-    if (0 == list->total_nodes) {
+    if (unlikely(0 == list->total_nodes)) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
     node_t *node_to_be_removed = list->head_node;
 
-    if (1 == list->total_nodes) {
+    if (unlikely(1 == list->total_nodes)) {
         list->head_node = NULL;
         list->tail_node = NULL;
     } else {
@@ -257,19 +257,19 @@ static inline node_t * list_pop_front(list_t *list)
 //node_t * list_pop_back(list_t *list);
 static inline node_t * list_pop_back(list_t *list)
 {
-    if (NULL == list) {
+    if (unlikely(NULL == list)) {
         DEBUG_ERROR("input parameter %s is null.", "list");
         return NULL;
     }
 
-    if (0 == list->total_nodes) {
+    if (unlikely(0 == list->total_nodes)) {
         DEBUG_INFO("%s is empty.", "list");
         return NULL;
     }
 
     node_t *node_to_be_removed = list->tail_node;
 
-    if (1 == list->total_nodes) {
+    if (unlikely(1 == list->total_nodes)) {
         list->head_node = NULL;
         list->tail_node = NULL;
     } else {

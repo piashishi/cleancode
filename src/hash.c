@@ -84,13 +84,13 @@ void* hash_del(void* hash_table, const void* key, void* hash_node, void* pool_ha
 {
     hash_t* hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code >= hash->max_buckets) {
+    if (unlikely(hash_code >= hash->max_buckets)) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
         return NULL;
     }
 
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
-    if (bucket->list == NULL) {
+    if (unlikely(bucket->list == NULL)) {
         DEBUG_ERROR("delete hash fail: hash list haven't element");
         return NULL;
     } else {
@@ -106,15 +106,15 @@ void* hash_find(void* hash_table, const void* key)
 {
     hash_t *hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
-    if (hash_code >= hash->max_buckets) {
+    if (unlikely(hash_code >= hash->max_buckets)) {
         DEBUG_ERROR("hash_find failed: hash key[%d] is invalid", hash_code);
         return NULL;
     }
     bucket_t* bucket = &(hash->bucket_list[hash_code]);
     node_t* node = NULL;
-    if (bucket->list != NULL) {
+    if (likely(bucket->list)) {
         node = bucket->list->head_node;
-        while (node != NULL) {
+        while (node) {
             if (!hash->kcmp(key, ((hash_data_t*) node->usr_data)->key)) {
                 break;
             }

@@ -128,7 +128,7 @@ static inline void* pool_get_element_head(void* element)
 
 inline void pool_free_element(void *pools, int pool_type, void* element)
 {
-    if (element == NULL) {
+    if (unlikely(element == NULL)) {
         return;
     }
 
@@ -144,7 +144,7 @@ return_t pool_set_reserved_pointer(void* element, void* to_set)
 {
     return_t ret;
     element_usr_data_t *element_user_data = (element_usr_data_t *) pool_get_element_head(element);
-    if (element_user_data == NULL) {
+    if (unlikely(element_user_data == NULL)) {
         DEBUG_ERROR("%s is NULL.", "element_user_data");
         ret = ERR;
     } else {

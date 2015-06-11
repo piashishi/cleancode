@@ -60,6 +60,7 @@ typedef libcache_scale_t LIBCACHE_KEY_TO_NUMBER(const void* key);
 #define DEBUG_ERROR(fmt, ...)
 #endif
 
-
+#define likely(x)       __builtin_expect(!!(x), 1)
+#define unlikely(x)     __builtin_expect(!!(x), 0)
 
 #endif /* LIBCACHE_DEF_H_ */
