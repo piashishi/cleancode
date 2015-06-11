@@ -84,7 +84,7 @@ void* pool_get_element(void* pools, int pool_type);
  * @param [in] element  - element address
  * @return -  OK / ERR
  */
-return_t pool_free_element(void* pools, int pool_type, void* element);
+void pool_free_element(void* pools, int pool_type, void* element);
 
 /**
  * @fn pool_get_key_by_element_address

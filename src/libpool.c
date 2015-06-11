@@ -154,39 +154,21 @@ static inline void* pool_get_element_head(void* element)
         return NULL;
     }
 
-//    void* element_head;
-
     element_usr_data_t *element_user_data = (element_usr_data_t *) ((char*) element - sizeof(element_usr_data_t));
-//    if (element_user_data->check_value != MAGIC_CHECK_VALUE) {
-//        DEBUG_ERROR("Element is a invalid to free, check_value = %d.", element_user_data->check_value);
-//        element_head = NULL;
-//    } else {
-//        element_head = element_user_data;
-//    }
-
     return (element_user_data->check_value != MAGIC_CHECK_VALUE) ? NULL : element_user_data;
 }
 
-return_t pool_free_element(void *pools, int pool_type, void* element)
+void pool_free_element(void *pools, int pool_type, void* element)
 {
     element_usr_data_t *element_user_data = pool_get_element_head(element);
     if (element_user_data == NULL) {
         DEBUG_ERROR("Element address get a NULL %s", "element_user_data");
-        return ERR;
+        return;
     }
 
     element_user_data->reserved_pointer = NULL;
-
-    node_t* node = element_user_data->to_node;
-    if (node == NULL) {
-        DEBUG_ERROR("Can't find the %s of element address", "node");
-        return ERR;
-    }
-
     element_pool_t *pool = get_pool_ctrl(pools, pool_type);
-    list_push_front(&pool->free_list, node);
-
-    return OK;
+    list_push_front(&pool->free_list, element_user_data->to_node);
 }
 
 return_t pool_set_reserved_pointer(void* element, void* to_set)

@@ -89,8 +89,7 @@ TEST(libpool_ut_get_element)
 
     return_t ret;
     for (i = 0; i < entry_count; i++) {
-        ret = pool_free_element(pools, TEST_POOL_TYPE_DATA, entry_stack[i]);
-        CHECK_EQUAL(ret, OK);
+        pool_free_element(pools, TEST_POOL_TYPE_DATA, entry_stack[i]);
     }
 
     free(pools);
