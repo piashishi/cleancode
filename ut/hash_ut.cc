@@ -115,7 +115,7 @@ TEST_FIXTURE(HashFixture, TestAddHash)
 
     int i = 0;
     uint32_t sum = 0;
-    for (i = 0; i < g_hash->max_entry; i++) {
+    for (i = 0; i < g_hash->max_buckets; i++) {
         bucket_t bucket = g_hash->bucket_list[i];
         if (bucket.list != NULL) {
             sum += bucket.list_count;
