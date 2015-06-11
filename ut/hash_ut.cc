@@ -16,13 +16,13 @@ typedef struct test_data_t {
     void* entry;
 } test_data_t;
 
-uint32_t test_key_to_int(const void* key)
+static uint32_t test_key_to_int(const void* key)
 {
     uint32_t* value = (uint32_t*) key;
     return *value;
 }
 
-libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
+static libcache_cmp_ret_t test_key_com(const void* key1, const void* key2)
 {
     uint32_t* a = (uint32_t*) key1;
     uint32_t* b = (uint32_t*) key2;
