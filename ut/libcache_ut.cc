@@ -96,7 +96,7 @@ TEST_FIXTURE(LibCacheFixture, TestLookup)
     int i = 0;
     int* key = NULL;
     int* entry = NULL;
-    int* entryList[g_max_entry_number] = { 0 };
+    int* entryList[g_max_entry_number + 1] = { 0 };
     for (i = 0; i <= g_max_entry_number; i++) {
         key = (int*) malloc(sizeof(int));
         entry = (int*) malloc(sizeof(int));
