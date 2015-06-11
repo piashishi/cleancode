@@ -64,7 +64,7 @@ void* libcache_create(
             { sizeof(libcache_node_usr_data_t), max_entry },
             { key_size, max_entry * 2},
             { sizeof(hash_t), 1 }, // POOL_TYPE_HASH_T
-            { sizeof(bucket_t)*65536, 1 }, // POOL_TYPE_BUCKET_T
+            { sizeof(bucket_t)*HASH_BUCKETS, 1 }, // POOL_TYPE_BUCKET_T
             { sizeof(hash_data_t), max_entry},
             };
 
@@ -81,7 +81,7 @@ void* libcache_create(
     libcache_t* libcache = (libcache_t*) pool_get_element(pools, POOL_TYPE_LIBCACHE_T);
     libcache->pool = pools;
 
-    libcache->hash_table = hash_init(max_entry, key_size, cmp_key, key_to_number, libcache->pool);
+    libcache->hash_table = hash_init(key_size, cmp_key, key_to_number, libcache->pool);
 
     libcache->list = (list_t*) pool_get_element(pools, POOL_TYPE_LIST_T);
     list_init(libcache->list);

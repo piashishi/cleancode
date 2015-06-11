@@ -65,7 +65,7 @@ struct HashFixture {
         assert(large_memory != NULL);
         pools = pools_init(large_memory, large_mem_size, pool_count, pool_attr);
         assert(pools != NULL);
-        g_hash = (hash_t*) hash_init(max_entry, sizeof(int), test_key_com, test_key_to_int, pools);
+        g_hash = (hash_t*) hash_init(sizeof(int), test_key_com, test_key_to_int, pools);
         list = (list_t*) malloc(sizeof(list_t));
         list_init(list);
     }
