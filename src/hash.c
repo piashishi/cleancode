@@ -16,12 +16,6 @@
 #define HASH_BITS 16
 #define GOLDEN_RATIO_PRIME_32 0x9e370001UL
 
-inline u32 key_to_hash(hash_t* hash, const void* key)
-{
-	u32 val = (hash->k2num(key)) * GOLDEN_RATIO_PRIME_32;
-	return val >> (32 - HASH_BITS);
-}
-
 void hash_free_node(node_t* node, void* pool_handle)
 {
     if (node == NULL || pool_handle == NULL) {
@@ -88,7 +82,7 @@ void* hash_add(void* hash_table, const void* key, void* hash_node, void* cache_n
         return NULL;
     }
 
-    node_t* node = (node_t*)hash_node;
+    node_t* node = (node_t*) hash_node;
     if (node == NULL) {
         node = (node_t*) pool_get_element(pool_handle, POOL_TYPE_NODE_T);
         node->usr_data = (hash_data_t*) pool_get_element(pool_handle, POOL_TYPE_HASH_DATA_T);
@@ -125,7 +119,7 @@ void* hash_del(void* hash_table, const void* key, void* hash_node, void* pool_ha
         return NULL;
     }
 
-	hash_t* hash = (hash_t*)hash_table;
+    hash_t* hash = (hash_t*) hash_table;
     u32 hash_code = key_to_hash(hash, key);
     if (hash_code >= hash->max_entry) {
         DEBUG_ERROR("hash key is invalid: %d", hash_code);
@@ -144,7 +138,6 @@ void* hash_del(void* hash_table, const void* key, void* hash_node, void* pool_ha
     hash->entry_count--;
     return hash_node;
 }
-
 
 void* hash_find(void* hash_table, const void* key)
 {
@@ -186,18 +179,18 @@ static void hash_release(void* hash_table, int is_destroy, void* pool_handle)
     }
     hash_t* hash = (hash_t*) hash_table;
     int i = 0;
-	for (i = 0; i < hash->max_entry; i++) {
-		bucket_t* bucket = &(hash->bucket_list[i]);
-		node_t *bucket_node;
-		if(bucket->list != NULL) {
-			while (NULL != (bucket_node = list_pop_front(bucket->list))) {
-				hash_free_node(bucket_node, pool_handle);
-			}
-			(void) pool_free_element(pool_handle, POOL_TYPE_LIST_T, bucket->list);
-			bucket->list = NULL;
-			bucket->list_count = 0;
-		}
-	}
+    for (i = 0; i < hash->max_entry; i++) {
+        bucket_t* bucket = &(hash->bucket_list[i]);
+        node_t *bucket_node;
+        if (bucket->list != NULL) {
+            while (NULL != (bucket_node = list_pop_front(bucket->list))) {
+                hash_free_node(bucket_node, pool_handle);
+            }
+            (void) pool_free_element(pool_handle, POOL_TYPE_LIST_T, bucket->list);
+            bucket->list = NULL;
+            bucket->list_count = 0;
+        }
+    }
     if (is_destroy) {
         pool_free_element(pool_handle, POOL_TYPE_BUCKET_T, hash->bucket_list);
         pool_free_element(pool_handle, POOL_TYPE_HASH_T, hash);

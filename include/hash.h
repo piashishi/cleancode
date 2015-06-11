@@ -33,6 +33,12 @@ typedef struct hash_t {
 }__attribute__((aligned(8)))  hash_t;
 
 
+inline  u32 key_to_hash(hash_t* hash, const void* key)
+{
+    u32 val = (hash->k2num(key)) * GOLDEN_RATIO_PRIME_32;
+    return val >> (32 - HASH_BITS);
+}
+
 /**
  * @fn hash_init
  *
