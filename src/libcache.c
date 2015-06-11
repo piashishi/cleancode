@@ -122,6 +122,7 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
         if (NULL == hash_node) {
             break;
         }
+        node_t* libcache_node = (node_t*) ((hash_data_t*) hash_node->usr_data)->cache_node_ptr;
         if (NULL == dst_entry) {
             // TODO: lock should be added here
             ((libcache_node_usr_data_t*) libcache_node->usr_data)->lock_counter++;
