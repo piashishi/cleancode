@@ -80,6 +80,12 @@ TEST_FIXTURE(LibCacheFixture, TestAdd)
     CHECK(entry4 == 3000);
     CHECK(*value4 == 3000);
 
+    value4 = libcache_lookup(NULL, &key3, &entry4);
+    CHECK(value4 == NULL);
+
+    value4 = libcache_lookup(g_cache, NULL, &entry4);
+    CHECK(value4 == NULL);
+
     //check look up
     int* value5 = (int*)libcache_lookup(g_cache, &key3, NULL);
     CHECK(value5 == value3);
