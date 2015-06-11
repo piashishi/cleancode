@@ -122,16 +122,9 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
         if (NULL == hash_node) {
             break;
         }
-
-        node_t* libcache_node = (node_t*) ((hash_data_t*) hash_node->usr_data)->cache_node_ptr;
-        if (NULL == libcache_node) {
-            break;
-        }
-
         if (NULL == dst_entry) {
             // TODO: lock should be added here
             ((libcache_node_usr_data_t*) libcache_node->usr_data)->lock_counter++;
-
             return_value = ((libcache_node_usr_data_t*) libcache_node->usr_data)->pool_element_ptr;
         } else {
             // Note: copy into dst_entry and return NULL, no lock added too
@@ -140,11 +133,6 @@ void* libcache_lookup(void* libcache, const void* key, void* dst_entry)
                    libcache_ptr->entry_size);
             return_value = dst_entry;
         }
-
-        // Note: put the newest found node in front of list
-        // list_remove(libcache_ptr->list, libcache_node);
-        // list_push_front(libcache_ptr->list, libcache_node);
-
         list_swap_to_head(libcache_ptr->list, libcache_node);
 
     } while (0);
